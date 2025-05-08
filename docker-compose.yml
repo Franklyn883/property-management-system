@@ -2,7 +2,7 @@ services:
   user-service:
     build: ./user-service
     volumes:
-      - ./user-service:app
+      - ./user-service:/app
     ports:
       - 8000:8000
     command: python manage.py runserver 0.0.0.0:8000
@@ -13,7 +13,7 @@ services:
   user-db:
       image: postgres:15
       env_file:
-        - user-service/.env.user
+        - ./user-service/.env.user
       environment:
         POSTGRES_DB: ${DB_NAME}
         POSTGRES_USER: ${DB_USER}
