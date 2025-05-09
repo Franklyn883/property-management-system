@@ -1,28 +1,27 @@
 services:
-  user-service:
+  user_service:
     build: ./user-service
     volumes:
-      - ./user-service:/app
+      - ./user-service:/user_service
     ports:
       - 8000:8000
+    env_file:
+      - ./user-service/.env.user
     command: python manage.py runserver 0.0.0.0:8000
-    container_name: userService
+    container_name: user_service
     depends_on:
-      - user-db
+      - user_db
 
-  user-db:
+  user_db:
       image: postgres:15
       env_file:
         - ./user-service/.env.user
-      environment:
-        POSTGRES_DB: ${DB_NAME}
-        POSTGRES_USER: ${DB_USER}
-        POSTGRES_PASSWORD: ${DB_PASSWORD}
-
+      container_name: user_db
+     
       ports:
         - "5432:5432"
       volumes:
-        - user_pgdata:/var/lib/postgresql/data
+        - user_pgdata:/var/lib/postgresql/data/
 
 volumes:
   user_pgdata:
