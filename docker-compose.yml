@@ -1,28 +1,59 @@
 services:
-  user_service:
-    build: ./user-service
-    volumes:
-      - ./user-service:/user_service
-    ports:
-      - 8000:8000
-    env_file:
-      - ./user-service/.env.user
-    command: python manage.py runserver 0.0.0.0:8000
-    container_name: user_service
-    depends_on:
-      - user_db
+    user-service:
+        build: ./user-service
+        volumes:
+            - ./user-service:/user-service
+        ports:
+            - 8000:8000
+        env_file:
+            - ./user-service/.env.user
+        command: python manage.py runserver 0.0.0.0:8000
+        container_name: user-service
+        depends_on:
+            - user-db
 
-  user_db:
-      image: postgres:15
-      env_file:
-        - ./user-service/.env.user
-      container_name: user_db
-     
-      ports:
-        - "5432:5432"
-      volumes:
-        - user_pgdata:/var/lib/postgresql/data/
+    user-db:
+        image: postgres:15
+        env_file:
+            - ./user-service/.env.user
+        container_name: user-db
+
+        ports:
+            - "5432:5432"
+        volumes:
+            - user-pgdata:/var/lib/postgresql/data/
+
+    property-services:
+        build: ./property-service
+        volumes:
+            - ./property-service:/usr/src/app
+        ports:
+            - "5002:5002"
+        env_file:
+            - ./property-service/.env
+        container_name: property_service
+        command: npm start
+        depends_on:
+            - property-db
+        networks:
+            - backend-network
+
+    property-db:
+        image: mongo:4.4
+        container_name: property-db
+        ports:
+            - "27018:27017"
+        env_file:
+            - ./property-service/.env
+        networks:
+            - backend-network
+        volumes:
+            - property-db:/data/db
 
 volumes:
-  user_pgdata:
+    user-pgdata:
+    property-db:
 
+networks:
+    backend-network:
+        driver: bridge

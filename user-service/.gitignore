@@ -137,3 +137,11 @@ GitHub.sublime-settings
 !.vscode/launch.json 
 !.vscode/extensions.json 
 .history
+
+
+#node
+node_modules
+build
+npm-debug.log
+.env
+.DS_Store
