@@ -159,6 +159,11 @@ REST_FRAMEWORK = {
 # django.contrib.sites
 SITE_ID = 1
 
+INTERNAL_API_KEY = os.getenv(
+    "INTERNAL_API_KEY"
+)
+
+
 # allauth settings
 ACCOUNT_AUTHENTICATION_METHOD = "email"  # Use Email / Password authentication
 ACCOUNT_USERNAME_REQUIRED = False
