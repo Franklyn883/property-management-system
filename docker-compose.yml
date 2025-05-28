@@ -23,7 +23,7 @@ services:
         volumes:
             - user-pgdata:/var/lib/postgresql/data/
 
-    property-services:
+    property-service:
         build: ./property-service
         volumes:
             - ./property-service:/usr/src/app
@@ -31,7 +31,7 @@ services:
             - "5002:5002"
         env_file:
             - ./property-service/.env
-        container_name: property_service
+        container_name: property-service
         command: npm start
         depends_on:
             - property-db
