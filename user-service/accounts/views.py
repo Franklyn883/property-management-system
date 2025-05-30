@@ -24,7 +24,6 @@ class InternalUserDetailView(APIView):
             user = User.objects.get(id=user_id)
             user_data = {
                 "id": user.id,
-                "username": user.username,
                 "email": user.email,
                 # add other fields as needed
             }

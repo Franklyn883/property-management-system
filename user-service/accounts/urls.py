@@ -14,6 +14,6 @@ urlpatterns = [
     path("token/refresh", TokenRefreshView.as_view(), name="token_refresh"),
     
     # internal user detail endpoint
-    path("internal/users/<int:user_id>/", InternalUserDetailView.as_view(), name="internal_user_detail"),
+    path("internal/users/<uuid:user_id>", InternalUserDetailView.as_view(), name="internal_user_detail"),
   
 ]

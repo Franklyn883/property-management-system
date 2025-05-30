@@ -27,9 +27,7 @@ load_dotenv(os.path.join(BASE_DIR, "env.user"))
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = (
-    "django-insecure-3m*kw2)()5d*g*tut-&ko8jy4y#8ez%_!6c#)4h1a0*ilvea2e"
-)
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -159,9 +157,7 @@ REST_FRAMEWORK = {
 # django.contrib.sites
 SITE_ID = 1
 
-INTERNAL_API_KEY = os.getenv(
-    "INTERNAL_API_KEY"
-)
+INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY")
 
 
 # allauth settings

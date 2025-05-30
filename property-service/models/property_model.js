@@ -12,7 +12,7 @@ const propertySchema = new mongoose.Schema(
             enum: ["available", "booked", "rented"],
             default: "available",
         },
-        userId: { type: String, required: True },
+        userId: { type: String, required: true },
     },
     { timestamps: true }
 );
