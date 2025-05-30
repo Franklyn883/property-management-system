@@ -1,14 +1,27 @@
 const Property = require("../models/property_model");
 
 const createProperty = async (req, res) => {
-    // const { title, description, price, location, images } = req.body;
-    const userId = req.user.id; // from auth middleware
-    try {
-        const property = new Property({ ...req.body, userId: userId });
-        const saved = await property.save();
-        res.status(201).json(property);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
+   
+    try{
+        const {title,description,location, price} = req.body;
+
+        // Check if user info is available from verifyToken middleware
+        if(!req.user || !req.user.is){
+            return res.status(401).json({message: "unauthorized: User info missing"})
+        }
+
+        // Create a New property
+        const property = new Property({
+            title,description,location,price,user:req.user.id // Attach the user ID from the JWT Token
+        })
+        await property.save()
+
+        res.status(201).json({message: "Property created successfully", property})
+
+
+    }catch(error){
+        console.error("Error creating property:", error)
+        res.status(500).json({message: "Server Error"})
     }
 };
 
