@@ -54,10 +54,11 @@ const getPropertyById = async (req, res) => {
 
 const deletePropertyById = async (req, res) => {
     try {
-        const { id } = req.params.id;
+        const id = req.params.id;
         const userId = req.user.pk;
 
         const property = await Property.findById(id);
+        console.log("From delete property: ", property);
 
         if (!property) {
             return res.status(404).json({ message: "Property not found" });
@@ -82,7 +83,7 @@ const deletePropertyById = async (req, res) => {
 
 const updatePropertyById = async (req, res) => {
     try {
-        const { id } = req.params.id;
+        const id = req.params.id;
         const userId = req.user.pk;
         const updates = req.body; // The updated fields
 
@@ -95,19 +96,17 @@ const updatePropertyById = async (req, res) => {
         //check if the user is the creator of the property
         if (property.user.toString() !== userId) {
             res.status(403).json({
-                message: "You are not authorized to delete this property",
+                message: "You are not authorized to update this property",
             });
         }
 
         const updatedProperty = await Property.findByIdAndUpdate(id, updates, {
             new: true,
         });
-        return res
-            .status(200)
-            .json({
-                message: "Property Updated successfully",
-                updatedProperty,
-            });
+        return res.status(200).json({
+            message: "Property Updated successfully",
+            updatedProperty,
+        });
     } catch (error) {
         console.error("Update Error,", error);
         res.status(500).json({ message: "Server error" });

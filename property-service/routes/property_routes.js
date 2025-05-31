@@ -15,6 +15,6 @@ router.post("/", verifyToken, createProperty);
 router.get("/", getAllProperty);
 router.get("/:id", getPropertyById);
 router.delete("/:id", verifyToken, deletePropertyById);
-router.put("/:id", verifyToken, updatePropertyId);
+router.put("/:id", verifyToken, updatePropertyById);
 
 module.exports = router;
