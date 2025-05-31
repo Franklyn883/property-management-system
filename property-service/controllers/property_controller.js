@@ -6,13 +6,15 @@ const createProperty = async (req, res) => {
         const {title,description,location, price} = req.body;
 
         // Check if user info is available from verifyToken middleware
-        if(!req.user || !req.user.is){
+        console.log("from createProperty: ", JSON.stringify(req.user, null, 2));
+
+        if(!req.user || !req.user.pk){
             return res.status(401).json({message: "unauthorized: User info missing"})
         }
-
+        const userId = req.user.pk;
         // Create a New property
         const property = new Property({
-            title,description,location,price,user:req.user.id // Attach the user ID from the JWT Token
+            title,description,location,price,user:userId // Attach the user ID from the JWT Token
         })
         await property.save()
 
@@ -43,5 +45,7 @@ const getPropertyById = async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 };
+
+
 
 module.exports = { createProperty, getAllProperty, getPropertyById };

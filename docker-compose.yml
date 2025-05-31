@@ -9,6 +9,8 @@ services:
             - ./user-service/.env.user
         command: python manage.py runserver 0.0.0.0:8000
         container_name: user-service
+        networks:
+            - backend-network
         depends_on:
             - user-db
 
@@ -22,6 +24,8 @@ services:
             - "5432:5432"
         volumes:
             - user-pgdata:/var/lib/postgresql/data/
+        networks:
+            - backend-network
 
     property-service:
         build: ./property-service
@@ -40,11 +44,14 @@ services:
 
     property-db:
         image: mongo:4.4
+        restart: always
         container_name: property-db
         ports:
             - "27018:27017"
-        env_file:
-            - ./property-service/.env
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+            MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+            MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
         networks:
             - backend-network
         volumes:
