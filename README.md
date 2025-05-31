@@ -31,21 +31,7 @@ A scalable and modular Property Management System built using a microservices ar
 
 ---
 
-## 🧭 Project Structure
-property-management-system/
-│
-├── user-service/ # Django REST Framework
-├── property-service/ # Node.js + Express
-├── booking-service/ # Flask
-├── payment-service/ # Django or Node.js
-├── maintenance-service/ # Flask or Node.js
-├── notification-service/ # Flask + Celery
-├── api-gateway/ # (Optional)
-├── docker-compose.yml
-└── README.md
 
-
----
 
 ## ⚙️ Getting Started
 
@@ -78,7 +64,7 @@ REST-based communication between services
 
 Event-based flow using Redis Pub/Sub or RabbitMQ (coming soon)
 
-## 📌 Roadmap## 📌 Roadmap
+## 📌 Roadmap
 
 ### ✅ Completed
 
