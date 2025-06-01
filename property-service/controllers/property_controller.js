@@ -35,8 +35,27 @@ const createProperty = async (req, res) => {
 
 const getAllProperty = async (req, res) => {
     try {
-        const properties = await Property.find();
-        res.status(200).json(properties);
+        // get the page and limit from the url
+        let { page, limit } = req.query;
+
+        page = parseInt(page) || 1;
+        limit = parseInt(limit) || 5;
+        const properties = await Property.find().skip(skip).limit(limit);
+        const total = await Property.countDocuments();
+        const totalPages = Math.ceil(total / limit);
+        const skip = (page - 1) * limit;
+        const nextPage = page < totalPages ? page + 1 : null;
+        const prevPage = page > 1 ? page - 1 : null;
+
+        res.status(200).json({
+            page,
+            limit,
+            total,
+            nextPage,
+            prevPage,
+            totalPages,
+            data: properties,
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
