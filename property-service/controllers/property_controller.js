@@ -1,5 +1,8 @@
 const Property = require("../models/property_model");
 
+// Constants for allowed update fields
+const ALLOWED_UPDATES = ['title', 'description', 'location', 'price', 'status', 'images'];
+
 const createProperty = async (req, res) => {
     try {
         const { title, description, location, price } = req.body;
@@ -8,10 +11,14 @@ const createProperty = async (req, res) => {
         console.log("from createProperty: ", JSON.stringify(req.user, null, 2));
 
         if (!req.user || !req.user.pk) {
-            return res
-                .status(401)
-                .json({ message: "unauthorized: User info missing" });
+            return res.status(401).json({ message: "unauthorized: User info missing" });
         }
+
+        // Validate input
+        if (!title || !location || !price) {
+            return res.status(400).json({ message: "Missing required fields" });
+        }
+
         const userId = req.user.pk;
         // Create a New property
         const property = new Property({
@@ -23,6 +30,7 @@ const createProperty = async (req, res) => {
         });
         await property.save();
 
+        console.log("Property created successfully:", property);
         res.status(201).json({
             message: "Property created successfully",
             property,
@@ -39,11 +47,14 @@ const getAllProperty = async (req, res) => {
         let { page, limit } = req.query;
 
         page = parseInt(page) || 1;
-        limit = parseInt(limit) || 5;
+        limit = parseInt(limit) || 2;
+        const maxLimit = 10; // Set a maximum limit
+        limit = Math.min(limit, maxLimit); // Ensure limit does not exceed maxLimit
+
+        const skip = (page - 1) * limit;
         const properties = await Property.find().skip(skip).limit(limit);
         const total = await Property.countDocuments();
         const totalPages = Math.ceil(total / limit);
-        const skip = (page - 1) * limit;
         const nextPage = page < totalPages ? page + 1 : null;
         const prevPage = page > 1 ? page - 1 : null;
 
@@ -57,6 +68,7 @@ const getAllProperty = async (req, res) => {
             data: properties,
         });
     } catch (error) {
+        console.error("Error fetching properties:", error);
         res.status(500).json({ error: error.message });
     }
 };
@@ -65,9 +77,13 @@ const getPropertyById = async (req, res) => {
     const id = req.params.id;
     try {
         const property = await Property.findById(id);
+        if (!property) {
+            return res.status(404).json({ message: "Property not found" });
+        }
         res.status(200).json(property);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        console.error("Error fetching property by ID:", error);
+        res.status(500).json({ error: error.message });
     }
 };
 
@@ -76,26 +92,15 @@ const deletePropertyById = async (req, res) => {
         const id = req.params.id;
         const userId = req.user.pk;
 
-        const property = await Property.findById(id);
-        console.log("From delete property: ", property);
-
+        const property = await Property.findOneAndDelete({ _id: id, user: userId });
         if (!property) {
-            return res.status(404).json({ message: "Property not found" });
+            return res.status(404).json({ message: "Property not found or unauthorized" });
         }
 
-        //check if the user is the creator of the property
-        if (property.user.toString() !== userId) {
-            res.status(403).json({
-                message: "You are not authorized to delete this property",
-            });
-        }
-
-        await Property.findByIdAndDelete(id);
-        return res
-            .status(200)
-            .json({ message: "Property deleted successfully" });
+        console.log("Property deleted successfully:", property);
+        return res.status(200).json({ message: "Property deleted successfully" });
     } catch (error) {
-        console.error("Delete Error,", error);
+        console.error("Delete Error:", error);
         res.status(500).json({ message: "Server error" });
     }
 };
@@ -106,31 +111,34 @@ const updatePropertyById = async (req, res) => {
         const userId = req.user.pk;
         const updates = req.body; // The updated fields
 
-        const property = await Property.findById(id);
-
-        if (!property) {
-            return res.status(404).json({ message: "Property not found" });
+        // Validate input: ensure updates only contain allowed fields
+        const isValidOperation = Object.keys(updates).every(update => ALLOWED_UPDATES.includes(update));
+        if (!isValidOperation) {
+            return res.status(400).json({ message: 'Invalid updates!' });
         }
 
-        //check if the user is the creator of the property
-        if (property.user.toString() !== userId) {
-            res.status(403).json({
-                message: "You are not authorized to update this property",
-            });
+        // Use findOneAndUpdate to optimize database operations
+        const updatedProperty = await Property.findOneAndUpdate(
+            { _id: id, user: userId },
+            updates,
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedProperty) {
+            return res.status(404).json({ message: 'Property not found or unauthorized' });
         }
 
-        const updatedProperty = await Property.findByIdAndUpdate(id, updates, {
-            new: true,
-        });
+        console.log("Property updated successfully:", updatedProperty);
         return res.status(200).json({
-            message: "Property Updated successfully",
+            message: 'Property Updated successfully',
             updatedProperty,
         });
     } catch (error) {
-        console.error("Update Error,", error);
-        res.status(500).json({ message: "Server error" });
+        console.error('Update Error:', error);
+        res.status(500).json({ message: 'Server error' });
     }
 };
+
 module.exports = {
     createProperty,
     getAllProperty,
