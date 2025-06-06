@@ -1,10 +1,24 @@
 const Property = require("../models/property_model");
+const { body, validationResult } = require('express-validator');
 
 // Constants for allowed update fields
 const ALLOWED_UPDATES = ['title', 'description', 'location', 'price', 'status', 'images'];
 
+// Validation middleware for creating a property
+const validateCreateProperty = [
+    body('title').notEmpty().withMessage('Title is required'),
+    body('location').notEmpty().withMessage('Location is required'),
+    body('price').isNumeric().withMessage('Price must be a number'),
+];
+
 const createProperty = async (req, res) => {
     try {
+        // Check for validation errors
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
         const { title, description, location, price } = req.body;
 
         // Check if user info is available from verifyToken middleware
@@ -12,11 +26,6 @@ const createProperty = async (req, res) => {
 
         if (!req.user || !req.user.pk) {
             return res.status(401).json({ message: "unauthorized: User info missing" });
-        }
-
-        // Validate input
-        if (!title || !location || !price) {
-            return res.status(400).json({ message: "Missing required fields" });
         }
 
         const userId = req.user.pk;
@@ -105,8 +114,21 @@ const deletePropertyById = async (req, res) => {
     }
 };
 
+// Validation middleware for updating a property
+const validateUpdateProperty = [
+    body('title').optional().notEmpty().withMessage('Title cannot be empty'),
+    body('location').optional().notEmpty().withMessage('Location cannot be empty'),
+    body('price').optional().isNumeric().withMessage('Price must be a number'),
+];
+
 const updatePropertyById = async (req, res) => {
     try {
+        // Check for validation errors
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
         const id = req.params.id;
         const userId = req.user.pk;
         const updates = req.body; // The updated fields
@@ -145,4 +167,6 @@ module.exports = {
     getPropertyById,
     deletePropertyById,
     updatePropertyById,
+    validateCreateProperty,
+    validateUpdateProperty,
 };
