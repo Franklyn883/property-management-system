@@ -21,7 +21,7 @@ services:
         container_name: user-db
 
         ports:
-            - "5432:5432"
+            - "5434:5432"
         volumes:
             - user-pgdata:/var/lib/postgresql/data/
         networks:
