@@ -37,7 +37,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ],
         default="user",
     )
-    is_verified = models.BooleanField(default=False)
+    is_verified = models.BooleanField(
+        default=False,
+        help_text="Designates whether the user has verified their email address.",
+    )
     last_login = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
     pending_validation = models.BooleanField(default=False)
@@ -79,6 +82,8 @@ class UserProfile(models.Model):
     last_name = models.CharField(max_length=50)
     avatar_url = models.URLField(null=True, blank=True)
     bio = models.CharField(max_length=200, null=True, blank=True)
+    saved_searches=models.JSONField(null=True,blank=True)
+    wishlist=models.JSONField(null=True,blank=True)
     gender = models.CharField(
         choices=[
             ("male", "Male"),
