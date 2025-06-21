@@ -6,7 +6,6 @@ from .models import (
     TenantProfile,
 )
 
-
 def get_profile_for_user(user):
     """
     Determines and returns the profile class based on the user's role.
@@ -16,7 +15,6 @@ def get_profile_for_user(user):
     If the user is a tenant, returns TenantProfile.
     Otherwise, returns UserProfile.
     """
-
     if user.role == "owner":
         return OwnerProfile
     elif user.role == "manager":

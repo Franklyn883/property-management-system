@@ -32,3 +32,4 @@ class InternalUserDetailView(APIView):
             return Response(
                 {"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND
             )
+            

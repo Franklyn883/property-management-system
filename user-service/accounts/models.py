@@ -24,7 +24,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     username = None
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True, db_index=True)
-    phone_number = models.CharField(max_length=20, unique=True)
+    phone_number = models.CharField(
+        max_length=20, unique=True, blank=True, null=True
+    )
     role = models.CharField(
         max_length=20,
         choices=[
@@ -82,8 +84,8 @@ class UserProfile(models.Model):
     last_name = models.CharField(max_length=50)
     avatar_url = models.URLField(null=True, blank=True)
     bio = models.CharField(max_length=200, null=True, blank=True)
-    saved_searches=models.JSONField(null=True,blank=True)
-    wishlist=models.JSONField(null=True,blank=True)
+    saved_searches = models.JSONField(null=True, blank=True)
+    wishlist = models.JSONField(null=True, blank=True)
     gender = models.CharField(
         choices=[
             ("male", "Male"),

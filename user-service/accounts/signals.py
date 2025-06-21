@@ -26,25 +26,12 @@ def create_profile(sender, instance, created, **kwargs):
             None
         """
 
+        profile = get_profile_for_user(instance)
+        
         if created:
-            get_profile_for_user(instance).objects.create(user=instance)
-
-
-@receiver(post_save, sender=User)
-def save_profile(sender, instance, **kwargs):
-    """
-    It saves the Profile object associated with the User that triggered the
-
-    signal.
-
-    Args:
-        sender (User): The User model that sent the signal.
-        instance (User): The User instance that was saved.
-        **kwargs: Additional keyword arguments.
-
-    Returns:
-        None
-    """
-
-    instance.get_profile_for_user(instance).save()
-
+            profile.objects.create(user=instance)
+            
+        else:
+            profile, _ = profile.objects.get_or_create(user=instance)
+            profile.save()
+            
