@@ -3,7 +3,8 @@ from dj_rest_auth.registration.views import RegisterView
 from dj_rest_auth.views import LoginView, LogoutView, UserDetailsView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .views import InternalUserDetailView, user_profile
+from .views import InternalUserDetailView
+from .views import Profile
 
 urlpatterns = [
     # dj-rest-auth
@@ -22,7 +23,7 @@ urlpatterns = [
         name="internal_user_detail",
     ),
     # user profile
-    path("auth/profile", user_profile, name="user_profile"),
+    path("auth/profile", Profile.user_profile, name="user_profile"),
     # path("profile/agent")
     # path("profile/owner")
     # path("profile/manager")

@@ -5,6 +5,14 @@ from .models import (
     AgentProfile,
     TenantProfile,
 )
+from .serializers import (
+    UserProfileSerializer,
+    OwnerProfileSerializer,
+    ManagerProfileSerializer,
+    AgentProfileSerializer,
+    TenantProfileSerializer,
+)
+
 
 def get_profile_for_user(user):
     """
@@ -25,3 +33,13 @@ def get_profile_for_user(user):
         return TenantProfile
     else:
         return UserProfile
+
+
+def get_serializer_for_user(user):
+    role_serializer_map = {
+        "owner": OwnerProfileSerializer,
+        "manager": ManagerProfileSerializer,
+        "agent": AgentProfileSerializer,
+        "tenant": TenantProfileSerializer,
+    }
+    return role_serializer_map.get(user.role, UserProfileSerializer)
