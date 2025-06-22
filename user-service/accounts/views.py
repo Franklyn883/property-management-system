@@ -9,7 +9,8 @@ from django.conf import settings
 
 from rest_framework.decorators import api_view, permission_classes
 
-from .role_router import get_profile_for_user, get_serializer_for_user
+from .role_router import get_serializer_for_user
+from .models import UserProfile
 
 User = get_user_model()
 
@@ -48,35 +49,37 @@ class Profile:
     @permission_classes([IsAuthenticated])
     def user_profile(request):
         """
-        Returns the user profile of the= authenticated user and allows them to update their profile.
+        Returns the user profile of the authenticated user and allows them to update their profile.
 
         GET:
-            Returns the user profile of the authenticated user.
+            Returns the user profile of the authenticated user based on their role.
 
         PUT:
             Updates the user profile of the authenticated user.
             The request body must contain the new profile data.
         """
 
+        # Since we have a single UserProfile model, we can fetch it directly.
+        # The user's profile is created automatically by a signal when a user is created.
         try:
-            ProfileModel = get_profile_for_user(request.user)
-            profile = ProfileModel.objects.get(user=request.user)
-        except profile.DoesNotExist:
+            profile = request.user.profile
+        except UserProfile.DoesNotExist:
             return Response(
                 {"Error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
+        # The role_router will determine which fields to show based on the user's role.
+        SerializerClass = get_serializer_for_user(request.user)
+
         if request.method == "GET":
-            SerializerClass = get_serializer_for_user(request.user)
             serializer = SerializerClass(profile)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         if request.method == "PUT":
-            SerializerClass = get_serializer_for_user(request.user)
             serializer = SerializerClass(
                 profile, data=request.data, partial=True
             )
-            if serializer.is_valid():
+            if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(

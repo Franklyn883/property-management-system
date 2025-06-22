@@ -2,10 +2,6 @@ from rest_framework import serializers
 from .models import (
     UserProfile,
     CustomUser,
-    OwnerProfile,
-    ManagerProfile,
-    AgentProfile,
-    TenantProfile,
 )
 
 
@@ -13,119 +9,101 @@ class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ["id", "email", "phone_number", "role"]
+        read_only_fields = [
+            "id",
+            "role",
+        ]  # Role shouldn't be changed directly here
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    """
+    Base serializer for the UserProfile model.
+    Handles nested update of the CustomUser.
+    """
+
     user = CustomUserSerializer()
 
     class Meta:
         model = UserProfile
-        fields = ["__all__"]
+        fields = [
+            "user",
+            "first_name",
+            "last_name",
+            "avatar_url",
+            "bio",
+            "gender",
+            "date_of_birth",
+            "address",
+            "city",
+            "state",
+            "country",
+            "zip_code",
+            "notification_preferences",
+            "saved_searches",
+            "wishlist",
+            "is_verified_poster",
+            "poster_verification_status",
+            "verified_at",
+            "poster_documents",
+        ]
+        read_only_fields = [
+            "is_verified_poster",
+            "poster_verification_status",
+            "verified_at",
+        ]
 
     def update(self, instance, validated_data):
         user_data = validated_data.pop("user", None)
 
-        # Safely update user only if user_data is provided
+        # Update the related CustomUser instance
         if user_data:
-            for attr, value in user_data.items():
-                setattr(instance.user, attr, value)
-            instance.user.save()
+            user_serializer = CustomUserSerializer(
+                instance.user, data=user_data, partial=True
+            )
+            if user_serializer.is_valid(raise_exception=True):
+                user_serializer.save()
 
-        #  Update profile fields
+        # Update the UserProfile instance for the remaining fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-
         return instance
 
-class AgentProfileSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer()
 
-    class Meta:
-        model = AgentProfile
-        fields = ["__all__"]
+class AgentProfileSerializer(UserProfileSerializer):
+    class Meta(UserProfileSerializer.Meta):
+        fields = UserProfileSerializer.Meta.fields + [
+            "agency_name",
+            "license_id",
+            "license_expiration_date",
+            "license_documents",
+            "clients_managed_count",
+        ]
 
-    def update(self, instance, validated_data):
-        user_data = validated_data.pop("user", None)
 
-        # Safely update user only if user_data is provided
-        if user_data:
-            for attr, value in user_data.items():
-                setattr(instance.user, attr, value)
-            instance.user.save()
+class ManagerProfileSerializer(UserProfileSerializer):
+    class Meta(UserProfileSerializer.Meta):
+        fields = UserProfileSerializer.Meta.fields + [
+            "properties_managed_count",
+            "assigned_properties",
+            "maintenance_requests_handled_count",
+            "assigned_maintenance_requests",
+        ]
 
-        #  Update profile fields
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
 
-        return instance
-    
-class ManagerProfileSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer()
+class TenantProfileSerializer(UserProfileSerializer):
+    class Meta(UserProfileSerializer.Meta):
+        fields = UserProfileSerializer.Meta.fields + [
+            "tenant_documents",
+            "properties_rented_count",
+            "rental_history_rating",
+            "preferred_locations",
+        ]
 
-    class Meta:
-        model = ManagerProfile
-        fields = ["__all__"]
 
-    def update(self, instance, validated_data):
-        user_data = validated_data.pop("user", None)
-
-        # Safely update user only if user_data is provided
-        if user_data:
-            for attr, value in user_data.items():
-                setattr(instance.user, attr, value)
-            instance.user.save()
-
-        #  Update profile fields
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-
-        return instance
-    
-class TenantProfileSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer()
-
-    class Meta:
-        model = TenantProfile
-        fields = ["__all__"]
-
-    def update(self, instance, validated_data):
-        user_data = validated_data.pop("user", None)
-
-        # Safely update user only if user_data is provided
-        if user_data:
-            for attr, value in user_data.items():
-                setattr(instance.user, attr, value)
-            instance.user.save()
-
-        #  Update profile fields
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-
-        return instance
-    
-class OwnerProfileSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer()
-
-    class Meta:
-        model = OwnerProfile
-        fields = ["__all__"]
-
-    def update(self, instance, validated_data):
-        user_data = validated_data.pop("user", None)
-
-        # Safely update user only if user_data is provided
-        if user_data:
-            for attr, value in user_data.items():
-                setattr(instance.user, attr, value)
-            instance.user.save()
-
-        #  Update profile fields
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-
-        return instance
+class OwnerProfileSerializer(UserProfileSerializer):
+    class Meta(UserProfileSerializer.Meta):
+        fields = UserProfileSerializer.Meta.fields + [
+            "ownership_documents",
+            "properties_owned_count",
+        ]

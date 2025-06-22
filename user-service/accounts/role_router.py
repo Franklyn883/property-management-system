@@ -1,9 +1,5 @@
 from .models import (
-    UserProfile,
-    OwnerProfile,
-    ManagerProfile,
-    AgentProfile,
-    TenantProfile,
+    UserProfile
 )
 from .serializers import (
     UserProfileSerializer,
@@ -14,32 +10,15 @@ from .serializers import (
 )
 
 
-def get_profile_for_user(user):
-    """
-    Determines and returns the profile class based on the user's role.
-    If the user is an owner, returns OwnerProfile.
-    If the user is a manager, returns ManagerProfile.
-    If the user is an agent, returns AgentProfile.
-    If the user is a tenant, returns TenantProfile.
-    Otherwise, returns UserProfile.
-    """
-    if user.role == "owner":
-        return OwnerProfile
-    elif user.role == "manager":
-        return ManagerProfile
-    elif user.role == "agent":
-        return AgentProfile
-    elif user.role == "tenant":
-        return TenantProfile
-    else:
-        return UserProfile
-
-
 def get_serializer_for_user(user):
+    """
+    Determines and returns the profile serializer class based on the user's role.
+    """
     role_serializer_map = {
         "owner": OwnerProfileSerializer,
         "manager": ManagerProfileSerializer,
         "agent": AgentProfileSerializer,
         "tenant": TenantProfileSerializer,
     }
+    # Return the specific serializer for the role, or the base UserProfileSerializer if the role is 'user' or not found.
     return role_serializer_map.get(user.role, UserProfileSerializer)
