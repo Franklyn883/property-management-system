@@ -5,16 +5,18 @@ from .models import (
 )
 from django.contrib.auth import get_user_model
 from dj_rest_auth.registration.serializers import RegisterSerializer
+from datetime import datetime
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ["id", "email", "phone_number", "role"]
+        fields = ["id", "email", "phone_number", "role", "is_verified"]
         read_only_fields = [
             "id",
             "role",
-        ]  # Role shouldn't be changed directly here
+            "is_verified",
+        ]
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -54,6 +56,26 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "verified_at",
         ]
 
+    def validate_name(self, value):
+        """
+        Validate the first and last name.
+        """
+        if not value.strip() or len(value.strip()) < 3:
+            raise serializers.ValidationError(
+                "Name must be at least 3 characters long"
+            )
+        return value.strip()
+
+    def validate_date_of_birth(self, value):
+        """
+        Validate the date of birth.
+        """
+        if value and value > datetime.now().date():
+            raise serializers.ValidationError(
+                "Date of birth cannot be in the future"
+            )
+        return value
+
     def update(self, instance, validated_data):
         user_data = validated_data.pop("user", None)
 
@@ -82,6 +104,36 @@ class AgentProfileSerializer(UserProfileSerializer):
             "clients_managed_count",
         ]
 
+    def validate_license_expiration_date(self, value):
+        """
+        Validate the license expiration date.
+        """
+        if value and value < datetime.now().date():
+            raise serializers.ValidationError(
+                "License expiration date cannot be in the past"
+            )
+        return value
+
+    def validate_license_id(self, value):
+        """
+        Validate the license ID.
+        """
+        if value and len(value.strip()) < 10:
+            raise serializers.ValidationError(
+                "License ID must be at least 10 characters long"
+            )
+        return value.strip() if value else None
+
+    def validate_agency_name(self, value):
+        """
+        Validate the agency name.
+        """
+        if value and len(value.strip()) < 3:
+            raise serializers.ValidationError(
+                "Agency name must be at least 3 characters long"
+            )
+        return value.strip() if value else None
+
 
 class ManagerProfileSerializer(UserProfileSerializer):
     class Meta(UserProfileSerializer.Meta):
@@ -102,6 +154,16 @@ class TenantProfileSerializer(UserProfileSerializer):
             "preferred_locations",
         ]
 
+    def validate_rental_history_rating(self, value):
+        """
+        Validate the rental history rating.
+        """
+        if value and (value < 0 or value > 5):
+            raise serializers.ValidationError(
+                "Rental history rating must be between 1 and 5"
+            )
+        return value
+
 
 class OwnerProfileSerializer(UserProfileSerializer):
     class Meta(UserProfileSerializer.Meta):
@@ -115,23 +177,23 @@ class CustomRegisterSerializer(RegisterSerializer):
     """
     Custom register serializer that works with allauth email verification
     """
+
     email = serializers.EmailField(required=True)
     password1 = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
 
-    
     def validate(self, attrs):
-        if attrs['password1'] != attrs['password2']:
+        if attrs["password1"] != attrs["password2"]:
             raise serializers.ValidationError("Passwords don't match")
         return attrs
-    
+
     def get_cleaned_data(self):
-        
+
         return {
-            'email': self.validated_data.get('email', ''),
-            'password1': self.validated_data.get('password1', ''),
+            "email": self.validated_data.get("email", ""),
+            "password1": self.validated_data.get("password1", ""),
         }
-    
+
     def save(self, request):
         # Use allauth's registration flow instead of creating user directly
         user = super().save(request)

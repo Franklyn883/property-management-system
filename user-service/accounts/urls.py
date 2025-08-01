@@ -3,8 +3,10 @@ from dj_rest_auth.registration.views import RegisterView,VerifyEmailView,Confirm
 from dj_rest_auth.views import LoginView, LogoutView, UserDetailsView,PasswordResetView, PasswordResetConfirmView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .views import InternalUserDetailView
-from .views import Profile
+from .views import (InternalUserDetailView,
+                    Profile,
+                    )
+
 
 urlpatterns = [
     # dj-rest-auth
@@ -32,19 +34,6 @@ urlpatterns = [
         name="internal_user_detail",
     ),
     # user profile
-    path("/profile", Profile.user_profile, name="user_profile"),
-    # path("profile/agent")
-    # path("profile/owner")
-    # path("profile/manager")
-    # path("profile/tenant")
-    # poster verification view
-    # handles users who want to post property and needs verification
-    # path("profile/poster/submit-verification")
-    # path("profile/poster/status")
-    # path("profile/poster/can-post-property")
-    # admin user router
-    # path("admin/users")
-    # path("admin/users/<uuid:user_id>/verify-poster")
-    # path("admin/user/<uuid:user_id>/roles")
-    # path("admin/user/<uuid:user_id>/")
+    path("profile", Profile.as_view(), name="user_profile"),
+  
 ]
