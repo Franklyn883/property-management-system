@@ -3,6 +3,8 @@ from .models import (
     UserProfile,
     CustomUser,
 )
+from django.contrib.auth import get_user_model
+from dj_rest_auth.registration.serializers import RegisterSerializer
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -107,3 +109,30 @@ class OwnerProfileSerializer(UserProfileSerializer):
             "ownership_documents",
             "properties_owned_count",
         ]
+
+
+class CustomRegisterSerializer(RegisterSerializer):
+    """
+    Custom register serializer that works with allauth email verification
+    """
+    email = serializers.EmailField(required=True)
+    password1 = serializers.CharField(write_only=True)
+    password2 = serializers.CharField(write_only=True)
+
+    
+    def validate(self, attrs):
+        if attrs['password1'] != attrs['password2']:
+            raise serializers.ValidationError("Passwords don't match")
+        return attrs
+    
+    def get_cleaned_data(self):
+        
+        return {
+            'email': self.validated_data.get('email', ''),
+            'password1': self.validated_data.get('password1', ''),
+        }
+    
+    def save(self, request):
+        # Use allauth's registration flow instead of creating user directly
+        user = super().save(request)
+        return user

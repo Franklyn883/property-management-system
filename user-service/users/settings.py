@@ -33,11 +33,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "user-service",
-]
+ALLOWED_HOSTS =os.getenv("ALLOWED_HOSTS").split(",")
 
 
 # Application definition
@@ -80,7 +76,7 @@ ROOT_URLCONF = "users.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -155,7 +151,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.CustomUser"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication"
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication'
     ],
 }
 
@@ -166,15 +163,54 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
 }
 
-# django.contrib.sites
+# dj-rest-auth settings
 SITE_ID = 1
+JWT_AUTH_COOKIE = 'my-app-auth'
+JWT_AUTH_REFRESH_COOKIE = 'my-app-refresh-auth'
+REST_USE_JWT = True
 
 INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY")
 
 
 # allauth settings
-ACCOUNT_AUTHENTICATION_METHOD = "email"  # Use Email / Password authentication
+AUTHENTICATION_BACKENDS = [
+    'allauth.account.auth_backends.AuthenticationBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = "none"  # Do not require email confirmation
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+
+# Add these settings to fix the username field issue
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "[Property Management System] "
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http"
+
+# Add these additional allauth settings
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
+ACCOUNT_EMAIL_CONFIRMATION_COOLDOWN = 180
+ACCOUNT_EMAIL_CONFIRMATION_HMAC = True
+
+# dj-rest-auth settings
+REST_AUTH = {
+    'USE_JWT': True,
+    'JWT_AUTH_COOKIE': 'my-app-auth',
+    'JWT_AUTH_REFRESH_COOKIE': 'my-app-refresh-auth',
+    'USER_DETAILS_SERIALIZER': 'accounts.serializers.CustomUserSerializer',
+}
+
+LOGIN_URL = 'http://localhost:8000/api/v1/auth/login'# Email settings
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+
+
+# Email settings for Gmail SMTP
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
+# Admin settings
+ADMIN_SITE_HEADER = "Property Management System"
+ADMIN_SITE_TITLE = "Property Management System"
+ADMIN_INDEX_TITLE = "Admin"

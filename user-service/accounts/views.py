@@ -41,47 +41,9 @@ class InternalUserDetailView(APIView):
             )
 
 
-class Profile:
-    """Profile view"""
-
-    @staticmethod
-    @api_view(["GET", "PUT"])
-    @permission_classes([IsAuthenticated])
-    def user_profile(request):
-        """
-        Returns the user profile of the authenticated user and allows them to update their profile.
-
-        GET:
-            Returns the user profile of the authenticated user based on their role.
-
-        PUT:
-            Updates the user profile of the authenticated user.
-            The request body must contain the new profile data.
-        """
-
-        # Since we have a single UserProfile model, we can fetch it directly.
-        # The user's profile is created automatically by a signal when a user is created.
-        try:
-            profile = request.user.profile
-        except UserProfile.DoesNotExist:
-            return Response(
-                {"Error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND
-            )
-
-        # The role_router will determine which fields to show based on the user's role.
-        SerializerClass = get_serializer_for_user(request.user)
-
-        if request.method == "GET":
-            serializer = SerializerClass(profile)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-        if request.method == "PUT":
-            serializer = SerializerClass(
-                profile, data=request.data, partial=True
-            )
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(
-                serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
+class Profile(APIView):
+    
+    """Returns the user profile"""
+   def get(self,request):
+       
+       """Returns the user profile"""

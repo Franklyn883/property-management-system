@@ -1,6 +1,6 @@
-from django.urls import path, include
-from dj_rest_auth.registration.views import RegisterView
-from dj_rest_auth.views import LoginView, LogoutView, UserDetailsView
+from django.urls import path, include, re_path
+from dj_rest_auth.registration.views import RegisterView,VerifyEmailView,ConfirmEmailView
+from dj_rest_auth.views import LoginView, LogoutView, UserDetailsView,PasswordResetView, PasswordResetConfirmView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .views import InternalUserDetailView
@@ -8,6 +8,7 @@ from .views import Profile
 
 urlpatterns = [
     # dj-rest-auth
+    path('auth/account-confirm-email/<str:key>/', ConfirmEmailView.as_view()),
     path("auth/registration", RegisterView.as_view(), name="rest_register"),
     path("auth/login", LoginView.as_view(), name="rest_login"),
     path("auth/logout", LogoutView.as_view(), name="rest_logout"),
@@ -16,6 +17,14 @@ urlpatterns = [
     path(
         "auth/token/refresh", TokenRefreshView.as_view(), name="token_refresh"
     ),
+     path('auth/verify-email/',
+         VerifyEmailView.as_view(), name='rest_verify_email'),
+    path('auth/account-confirm-email/',
+         VerifyEmailView.as_view(), name='account_email_verification_sent'),
+    re_path(r'^auth/account-confirm-email/(?P<key>[-:\w]+)/$',
+         VerifyEmailView.as_view(), name='account_confirm_email'),
+    path('auth/password-reset/', PasswordResetView.as_view(), name='rest_password_reset'),
+    path('auth/password-reset/confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),   
     # internal user detail endpoint
     path(
         "internal/users/<uuid:user_id>",
@@ -23,7 +32,7 @@ urlpatterns = [
         name="internal_user_detail",
     ),
     # user profile
-    path("auth/profile", Profile.user_profile, name="user_profile"),
+    path("/profile", Profile.user_profile, name="user_profile"),
     # path("profile/agent")
     # path("profile/owner")
     # path("profile/manager")

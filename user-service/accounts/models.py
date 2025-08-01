@@ -48,6 +48,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     pending_validation = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(default=timezone.now)
+    
+    # Add the missing is_staff field
+    is_staff = models.BooleanField(
+        default=False,
+        help_text="Designates whether the user can log into this admin site.",
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
