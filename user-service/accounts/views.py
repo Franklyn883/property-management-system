@@ -12,6 +12,7 @@ from rest_framework.exceptions import ValidationError
 
 from .role_router import get_serializer_for_user
 from .models import UserProfile
+from .serializers import 
 
 User = get_user_model()
 
@@ -201,3 +202,6 @@ class Profile(APIView):
             return user.profile
         except UserProfile.DoesNotExist:
             return None
+
+
+
