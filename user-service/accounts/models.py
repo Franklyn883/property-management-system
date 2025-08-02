@@ -160,21 +160,19 @@ class UserProfile(models.Model):
         """
         return self.user.role in ["owner", "agent"] and self.is_verified_poster
 
-
     def submit_verification_document(self, document_data):
         """
         Submit a verification document for the user.
         """
         if self.poster_documents is None:
             self.poster_documents = []
-            
-            
+
         document_data["id"] = str(uuid.uuid4())
         document_data["submitted_at"] = timezone.now().isoformat()
         self.poster_documents.append(document_data)
         self.poster_verification_status = "pending"
         self.save()
-        
+
     def approve_verification(self, approve_by):
         """
         Approve the verification for the user.
@@ -182,18 +180,18 @@ class UserProfile(models.Model):
         self.poster_verification_status = "approved"
         self.verified_at = timezone.now()
         self.is_verified_poster = True
-        
-    def reject_verification(self, reject_by, reason):   
+
+    def reject_verification(self, reject_by, reason):
         """
         Reject the verification for the user.
         """
         self.poster_verification_status = "rejected"
         self.verified_at = None
         self.is_verified_poster = False
-        
+
         if self.poster_documents is None:
             self.poster_documents = []
-            
+
         rejection_data = {
             "id": str(uuid.uuid4()),
             "type": "rejection",
@@ -203,8 +201,6 @@ class UserProfile(models.Model):
         }
         self.poster_documents.append(rejection_data)
         self.save()
-        
+
     def __str__(self):
         return self.user.email
-    
-    
