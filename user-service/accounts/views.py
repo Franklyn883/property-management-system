@@ -1,3 +1,5 @@
+from rest_framework import viewsets
+from .serializers import AdminUserListSerializer, AdminUserDetailSerializer
 from django.shortcuts import render
 
 from rest_framework.views import APIView
@@ -16,6 +18,9 @@ from .serializers import (
     VerificationSubmissionSerializer,
     VerificationStatusSerializer,
     AdminVerificationSerializer,
+    AdminUserListSerializer,
+    AdminUserDetailSerializer,
+    AdminUserActionSerializer,
 )
 from .permissions import IsOwnerOrAgent, IsAdmin
 from django.utils import timezone
@@ -211,8 +216,6 @@ class Profile(APIView):
             return user.profile
         except UserProfile.DoesNotExist:
             return None
-        
-        
 
 
 class VerificationViewSet(ViewSet):
@@ -232,7 +235,9 @@ class VerificationViewSet(ViewSet):
             return profile
 
         if profile.is_verified_poster:
-            return self._error_response("User already verified", status.HTTP_400_BAD_REQUEST)
+            return self._error_response(
+                "User already verified", status.HTTP_400_BAD_REQUEST
+            )
 
         serializer = VerificationSubmissionSerializer(data=request.data)
         if serializer.is_valid():
@@ -261,7 +266,10 @@ class VerificationViewSet(ViewSet):
                     )
             except Exception as e:
                 import logging
-                logging.error(f"Error submitting verification document for user {getattr(profile.user, 'email', None)}: {e}")
+
+                logging.error(
+                    f"Error submitting verification document for user {getattr(profile.user, 'email', None)}: {e}"
+                )
                 return self._error_response(
                     "An error occurred while submitting the verification document",
                     status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -278,7 +286,9 @@ class VerificationViewSet(ViewSet):
     def _get_profile_or_error(self, request):
         profile = get_profile_for_user(request)
         if profile is None:
-            return Response({"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND
+            )
         return profile
 
     def _error_response(self, message, status_code):
@@ -333,7 +343,7 @@ class AdminVerificationViewSet(ListModelMixin, ViewSet):
     Viewset for admin verification management.
     """
 
-    permission_classes = [IsAuthenticated, IsAdmin]     
+    permission_classes = [IsAuthenticated, IsAdmin]
     pagination_class = PageNumberPagination
 
     def list(self, request):
@@ -434,7 +444,8 @@ class AdminVerificationViewSet(ListModelMixin, ViewSet):
         rejection_reason = request.data.get("reason", "Verification Rejected")
         if not isinstance(rejection_reason, str) or len(rejection_reason) > 100:
             return self._error_response(
-                "Rejection reason must be a string up to 255 characters.", status.HTTP_400_BAD_REQUEST
+                "Rejection reason must be a string up to 255 characters.",
+                status.HTTP_400_BAD_REQUEST,
             )
 
         try:
@@ -466,7 +477,10 @@ class AdminVerificationViewSet(ListModelMixin, ViewSet):
                 )
         except Exception as e:
             import logging
-            logging.error(f"Error rejecting verification request for user {getattr(profile.user, 'email', None)}: {e}")
+
+            logging.error(
+                f"Error rejecting verification request for user {getattr(profile.user, 'email', None)}: {e}"
+            )
             return self._error_response(
                 "An error occurred while rejecting the verification request",
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -475,8 +489,304 @@ class AdminVerificationViewSet(ListModelMixin, ViewSet):
     def _get_profile_or_error(self, request):
         profile = get_profile_for_user(request)
         if profile is None:
-            return Response({"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND
+            )
         return profile
 
     def _error_response(self, message, status_code):
         return Response({"error": message}, status=status_code)
+
+
+class AdminUserViewSet(ListModelMixin, ViewSet):
+    """
+    Viewset for admin user management.
+    """
+
+    permission_classes = [IsAuthenticated, IsAdmin]
+    pagination_class = PageNumberPagination
+
+    def list(self, request):
+        """
+        Get the list of users for admin with filtering and pagination.
+        """
+        # Get query parameters for filtering
+        role_filter = request.query_params.get("role", None)
+        status_filter = request.query_params.get("status", None)
+        search_query = request.query_params.get("search", None)
+        is_verified_filter = request.query_params.get("is_verified", None)
+        is_active_filter = request.query_params.get("is_active", None)
+
+        # Get all users
+        queryset = User.objects.select_related('profile').all()
+
+        # Apply filters
+        if role_filter:
+            queryset = queryset.filter(role=role_filter)
+        if status_filter:
+            if status_filter == "active":
+                queryset = queryset.filter(is_active=True)
+            elif status_filter == "inactive":
+                queryset = queryset.filter(is_active=False)
+        if is_verified_filter is not None:
+            is_verified = is_verified_filter.lower() == "true"
+            queryset = queryset.filter(is_verified=is_verified)
+        if is_active_filter is not None:
+            is_active = is_active_filter.lower() == "true"
+            queryset = queryset.filter(is_active=is_active)
+        if search_query:
+            queryset = queryset.filter(
+                Q(email__icontains=search_query)
+                | Q(phone_number__icontains=search_query)
+                | Q(profile__first_name__icontains=search_query)
+                | Q(profile__last_name__icontains=search_query)
+            )
+
+        # Order by date joined (newest first)
+        queryset = queryset.order_by("-date_joined")
+
+        # Pagination
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            serializer = AdminUserListSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = AdminUserListSerializer(queryset, many=True)
+        return Response(
+            {
+                "status": "success",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def retrieve(self, request, pk=None):
+        """
+        Get detailed information about a specific user.
+        """
+        try:
+            user = User.objects.select_related('profile').get(id=pk)
+            serializer = AdminUserDetailSerializer(user)
+            return Response(
+                {
+                    "status": "success",
+                    "data": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+    def update(self, request, pk=None):
+        """
+        Update user information (partial update).
+        """
+        try:
+            user = User.objects.get(id=pk)
+            serializer = AdminUserActionSerializer(data=request.data, partial=True)
+            
+            if serializer.is_valid():
+                # Update user fields
+                for field, value in serializer.validated_data.items():
+                    setattr(user, field, value)
+                user.save()
+
+                # Return updated user data
+                detail_serializer = AdminUserDetailSerializer(user)
+                return Response(
+                    {
+                        "status": "success",
+                        "message": "User updated successfully",
+                        "data": detail_serializer.data,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                return Response(
+                    {
+                        "status": "error",
+                        "errors": serializer.errors,
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+    @action(detail=True, methods=["post"])
+    def activate(self, request, pk=None):
+        """
+        Activate a user account.
+        """
+        try:
+            user = User.objects.get(id=pk)
+            if user.is_active:
+                return Response(
+                    {"error": "User is already active"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            
+            user.is_active = True
+            user.save()
+            
+            return Response(
+                {
+                    "status": "success",
+                    "message": f"User {user.email} has been activated successfully",
+                },
+                status=status.HTTP_200_OK,
+            )
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+    @action(detail=True, methods=["post"])
+    def deactivate(self, request, pk=None):
+        """
+        Deactivate a user account.
+        """
+        try:
+            user = User.objects.get(id=pk)
+            if not user.is_active:
+                return Response(
+                    {"error": "User is already inactive"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            
+            user.is_active = False
+            user.save()
+            
+            return Response(
+                {
+                    "status": "success",
+                    "message": f"User {user.email} has been deactivated successfully",
+                },
+                status=status.HTTP_200_OK,
+            )
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+    @action(detail=True, methods=["post"])
+    def change_role(self, request, pk=None):
+        """
+        Change user role.
+        """
+        try:
+            user = User.objects.get(id=pk)
+            new_role = request.data.get("role")
+            
+            if not new_role:
+                return Response(
+                    {"error": "Role is required"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            
+            if new_role == "admin":
+                return Response(
+                    {"error": "Cannot change user role to admin via API"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            
+            if new_role not in dict(User._meta.get_field('role').choices):
+                return Response(
+                    {"error": "Invalid role"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            
+            old_role = user.role
+            user.role = new_role
+            user.save()
+            
+            return Response(
+                {
+                    "status": "success",
+                    "message": f"User {user.email} role changed from {old_role} to {new_role}",
+                },
+                status=status.HTTP_200_OK,
+            )
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+    @action(detail=True, methods=["post"])
+    def reset_password(self, request, pk=None):
+        """
+        Reset user password (admin action).
+        """
+        try:
+            user = User.objects.get(id=pk)
+            new_password = request.data.get("new_password")
+            
+            if not new_password:
+                return Response(
+                    {"error": "New password is required"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            
+            if len(new_password) < 8:
+                return Response(
+                    {"error": "Password must be at least 8 characters long"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            
+            user.set_password(new_password)
+            user.save()
+            
+            return Response(
+                {
+                    "status": "success",
+                    "message": f"Password for user {user.email} has been reset successfully",
+                },
+                status=status.HTTP_200_OK,
+            )
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+    @action(detail=False, methods=["get"])
+    def statistics(self, request):
+        """
+        Get user statistics for admin dashboard.
+        """
+        total_users = User.objects.count()
+        active_users = User.objects.filter(is_active=True).count()
+        verified_users = User.objects.filter(is_verified=True).count()
+        
+        # Role-based statistics
+        role_stats = {}
+        for role_choice in User._meta.get_field('role').choices:
+            role_name = role_choice[0]
+            role_count = User.objects.filter(role=role_name).count()
+            role_stats[role_name] = role_count
+        
+        # Verification statistics
+        verified_posters = UserProfile.objects.filter(is_verified_poster=True).count()
+        pending_verifications = UserProfile.objects.filter(
+            poster_verification_status="pending"
+        ).count()
+        
+        return Response(
+            {
+                "status": "success",
+                "data": {
+                    "total_users": total_users,
+                    "active_users": active_users,
+                    "verified_users": verified_users,
+                    "role_distribution": role_stats,
+                    "verified_posters": verified_posters,
+                    "pending_verifications": pending_verifications,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
+    
+    

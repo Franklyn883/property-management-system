@@ -18,6 +18,7 @@ from .views import (
     Profile,
     VerificationViewSet,
     AdminVerificationViewSet,
+    AdminUserViewSet,
 )
 from rest_framework.routers import DefaultRouter
 
@@ -30,6 +31,11 @@ router.register(
     r"admin/verifications",
     AdminVerificationViewSet,
     basename="admin-verification",
+)
+router.register(
+    r"admin/users",
+    AdminUserViewSet,
+    basename="admin-users",
 )
 
 
