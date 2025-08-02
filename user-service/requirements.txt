@@ -10,3 +10,5 @@ django-ratelimit==4.1.0                 # Rate limiting for API endpoints
 django-phonenumber-field==7.3.0         # Phone number validation
 phonenumbers==8.13.25                   # Phone number parsing and validation
 email-validator==2.1.0                  # Email validation
+django-cors-headers==4.3.1              # CORS headers for cross-origin requests
+django-security==0.16.0                 # Security headers and middleware
