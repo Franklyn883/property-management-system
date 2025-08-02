@@ -115,6 +115,7 @@ API_DOCUMENTATION.md
 todo.md
 property.txt
 service-workflow.md
+docs/service-workflow.md
 
 # mypy 
 .mypy_cache/ 
@@ -151,4 +152,4 @@ build
 npm-debug.log
 .env
 .DS_Store
-docs/
+docs
