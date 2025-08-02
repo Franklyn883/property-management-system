@@ -7,3 +7,6 @@ sqlparse==0.5.3
 djangorestframework-simplejwt==5.3.1   # JWT token implementation for DRF
 dj-rest-auth[with_social]==6.0.0       # REST API authentication utils
 django-ratelimit==4.1.0                 # Rate limiting for API endpoints
+django-phonenumber-field==7.3.0         # Phone number validation
+phonenumbers==8.13.25                   # Phone number parsing and validation
+email-validator==2.1.0                  # Email validation

@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "dj_rest_auth",
     "dj_rest_auth.registration",
+    "phonenumber_field",
     # Local apps
     "accounts.apps.AccountsConfig",
 ]

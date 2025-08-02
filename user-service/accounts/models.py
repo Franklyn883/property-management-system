@@ -5,6 +5,7 @@ from django.utils import timezone
 import uuid
 from .managers import CustomUserManager
 from django.contrib.auth import get_user_model
+from phonenumber_field.modelfields import PhoneNumberField
 
 
 # Create your models here.
@@ -24,9 +25,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     username = None
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True, db_index=True)
-    phone_number = models.CharField(
-        max_length=20, unique=True, blank=True, null=True
-    )
+    phone_number = PhoneNumberField(unique=True, blank=True, null=True)
     role = models.CharField(
         max_length=20,
         choices=[

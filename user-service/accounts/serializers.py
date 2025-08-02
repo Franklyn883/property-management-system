@@ -6,9 +6,18 @@ from .models import (
 from django.contrib.auth import get_user_model
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from datetime import datetime
+from .validation import (
+    PasswordStrengthValidator,
+    EmailDomainValidator,
+    PhoneNumberValidator,
+    NameValidator,
+    AgeValidator,
+    URLValidator,
+    ValidationMixin,
+)
 
 
-class CustomUserSerializer(serializers.ModelSerializer):
+class CustomUserSerializer(serializers.ModelSerializer, ValidationMixin):
     class Meta:
         model = CustomUser
         fields = ["id", "email", "phone_number", "role", "is_verified"]
@@ -17,9 +26,19 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "role",
             "is_verified",
         ]
+    
+    def validate_email(self, value):
+        """Validate email format and domain."""
+        return self.validate_email_domain(value)
+    
+    def validate_phone_number(self, value):
+        """Validate phone number format."""
+        if value:
+            return self.validate_phone_number(value)
+        return value
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class UserProfileSerializer(serializers.ModelSerializer, ValidationMixin):
     """
     Base serializer for the UserProfile model.
     Handles nested update of the CustomUser.
@@ -56,24 +75,24 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "verified_at",
         ]
 
-    def validate_name(self, value):
-        """
-        Validate the first and last name.
-        """
-        if not value.strip() or len(value.strip()) < 3:
-            raise serializers.ValidationError(
-                "Name must be at least 3 characters long"
-            )
-        return value.strip()
+    def validate_first_name(self, value):
+        """Validate first name using NameValidator."""
+        return self.validate_name(value)
+
+    def validate_last_name(self, value):
+        """Validate last name using NameValidator."""
+        return self.validate_name(value)
 
     def validate_date_of_birth(self, value):
-        """
-        Validate the date of birth.
-        """
-        if value and value > datetime.now().date():
-            raise serializers.ValidationError(
-                "Date of birth cannot be in the future"
-            )
+        """Validate date of birth using AgeValidator."""
+        if value:
+            return self.validate_age(value)
+        return value
+
+    def validate_avatar_url(self, value):
+        """Validate avatar URL using URLValidator."""
+        if value:
+            return self.validate_url(value)
         return value
 
     def update(self, instance, validated_data):
@@ -173,7 +192,7 @@ class OwnerProfileSerializer(UserProfileSerializer):
         ]
 
 
-class CustomRegisterSerializer(RegisterSerializer):
+class CustomRegisterSerializer(RegisterSerializer, ValidationMixin):
     """
     Custom register serializer that works with allauth email verification
     """
@@ -181,6 +200,14 @@ class CustomRegisterSerializer(RegisterSerializer):
     email = serializers.EmailField(required=True)
     password1 = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
+
+    def validate_email(self, value):
+        """Validate email format and domain."""
+        return self.validate_email_domain(value)
+
+    def validate_password1(self, value):
+        """Validate password strength."""
+        return self.validate_password_strength(value)
 
     def validate(self, attrs):
         if attrs["password1"] != attrs["password2"]:
@@ -200,7 +227,7 @@ class CustomRegisterSerializer(RegisterSerializer):
         return user
 
 
-class VerificationSubmissionSerializer(serializers.Serializer):
+class VerificationSubmissionSerializer(serializers.Serializer, ValidationMixin):
     """
     Serializer for poster verification submission.
     """
@@ -219,15 +246,8 @@ class VerificationSubmissionSerializer(serializers.Serializer):
     description = serializers.CharField(max_length=500, required=False)
 
     def validate_document_url(self, value):
-        """
-        Validate the document URL format.
-        """
-        valid_schemes = ["https://", "http://", "localhost"]
-        if not any(value.startswith(scheme) for scheme in valid_schemes):
-            raise serializers.ValidationError(
-                "Document URL must be a valid HTTP/HTTPS URL"
-            )
-        return value
+        """Validate document URL using URLValidator."""
+        return self.validate_url(value)
 
 
 class VerificationStatusSerializer(serializers.ModelSerializer):
