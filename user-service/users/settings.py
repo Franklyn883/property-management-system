@@ -214,3 +214,41 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 ADMIN_SITE_HEADER = "Property Management System"
 ADMIN_SITE_TITLE = "Property Management System"
 ADMIN_INDEX_TITLE = "Admin"
+
+# Rate Limiting Configuration
+RATELIMIT_USE_CACHE = 'default'
+RATELIMIT_ENABLE = True
+
+# Rate limiting settings for different endpoints
+RATELIMIT_SETTINGS = {
+    'auth_endpoints': {
+        'rate': '5/m',  # 5 requests per minute
+        'key': 'ip',
+        'method': 'POST',
+    },
+    'registration_endpoints': {
+        'rate': '3/h',  # 3 requests per hour
+        'key': 'ip',
+        'method': 'POST',
+    },
+    'admin_endpoints': {
+        'rate': '20/m',  # 20 requests per minute
+        'key': 'user',
+        'method': 'GET',
+    },
+    'profile_endpoints': {
+        'rate': '10/m',  # 10 requests per minute
+        'key': 'user',
+        'method': 'PUT',
+    },
+    'verification_endpoints': {
+        'rate': '3/h',  # 3 requests per hour
+        'key': 'user',
+        'method': 'POST',
+    },
+    'general_api': {
+        'rate': '100/h',  # 100 requests per hour
+        'key': 'ip',
+        'method': 'GET',
+    },
+}

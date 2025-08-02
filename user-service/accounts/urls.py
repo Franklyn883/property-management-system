@@ -1,14 +1,10 @@
 from django.urls import path, include, re_path
 from dj_rest_auth.registration.views import (
-    RegisterView,
     VerifyEmailView,
     ConfirmEmailView,
 )
 from dj_rest_auth.views import (
-    LoginView,
-    LogoutView,
     UserDetailsView,
-    PasswordResetView,
     PasswordResetConfirmView,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -19,6 +15,12 @@ from .views import (
     VerificationViewSet,
     AdminVerificationViewSet,
     AdminUserViewSet,
+)
+from .auth_views import (
+    RateLimitedLoginView,
+    RateLimitedRegisterView,
+    RateLimitedLogoutView,
+    RateLimitedPasswordResetView,
 )
 from rest_framework.routers import DefaultRouter
 
@@ -42,9 +44,9 @@ router.register(
 urlpatterns = [
     # dj-rest-auth
     path("auth/account-confirm-email/<str:key>/", ConfirmEmailView.as_view()),
-    path("auth/registration", RegisterView.as_view(), name="rest_register"),
-    path("auth/login", LoginView.as_view(), name="rest_login"),
-    path("auth/logout", LogoutView.as_view(), name="rest_logout"),
+    path("auth/registration", RateLimitedRegisterView.as_view(), name="rest_register"),
+    path("auth/login", RateLimitedLoginView.as_view(), name="rest_login"),
+    path("auth/logout", RateLimitedLogoutView.as_view(), name="rest_logout"),
     path("auth/user", UserDetailsView.as_view(), name="rest_user_details"),
     path("auth/token", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path(
@@ -67,7 +69,7 @@ urlpatterns = [
     ),
     path(
         "auth/password-reset/",
-        PasswordResetView.as_view(),
+        RateLimitedPasswordResetView.as_view(),
         name="rest_password_reset",
     ),
     path(

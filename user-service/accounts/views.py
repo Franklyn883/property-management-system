@@ -29,6 +29,7 @@ import uuid
 from django.db.models import Q
 from rest_framework.mixins import ListModelMixin
 from rest_framework.pagination import PageNumberPagination
+from .rate_limiting import admin_rate_limit, profile_rate_limit, verification_rate_limit
 
 User = get_user_model()
 
@@ -94,12 +95,14 @@ class Profile(APIView):
             status=status.HTTP_200_OK,
         )
 
+    @profile_rate_limit
     def put(self, request):
         """
         Updates the user profile based on the user's role.
         """
         return self._update_profile(request, partial=False)
 
+    @profile_rate_limit
     def patch(self, request):
         """
         Updates the user profile based on the user's role.
@@ -226,6 +229,7 @@ class VerificationViewSet(ViewSet):
     permission_classes = [IsAuthenticated]
 
     @action(detail=False, methods=["post"], permission_classes=[IsOwnerOrAgent])
+    @verification_rate_limit
     def submit(self, request):
         """
         Submit a verification document for the user.
@@ -346,6 +350,7 @@ class AdminVerificationViewSet(ListModelMixin, ViewSet):
     permission_classes = [IsAuthenticated, IsAdmin]
     pagination_class = PageNumberPagination
 
+    @admin_rate_limit
     def list(self, request):
         """
         Get the list of verification requests for admin.
@@ -506,6 +511,7 @@ class AdminUserViewSet(ListModelMixin, ViewSet):
     permission_classes = [IsAuthenticated, IsAdmin]
     pagination_class = PageNumberPagination
 
+    @admin_rate_limit
     def list(self, request):
         """
         Get the list of users for admin with filtering and pagination.

@@ -6,3 +6,4 @@ python-dotenv==1.1.0
 sqlparse==0.5.3
 djangorestframework-simplejwt==5.3.1   # JWT token implementation for DRF
 dj-rest-auth[with_social]==6.0.0       # REST API authentication utils
+django-ratelimit==4.1.0                 # Rate limiting for API endpoints
