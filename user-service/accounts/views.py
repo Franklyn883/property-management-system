@@ -227,35 +227,26 @@ class VerificationViewSet(ViewSet):
         """
         Submit a verification document for the user.
         """
-        profile = get_profile_for_user(request)
-        if profile is None:
-            return Response(
-                {"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND
-            )
+        profile = self._get_profile_or_error(request)
+        if isinstance(profile, Response):
+            return profile
 
-        # check if already verified
         if profile.is_verified_poster:
-            return Response(
-                {"error": "User already verified"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return self._error_response("User already verified", status.HTTP_400_BAD_REQUEST)
 
         serializer = VerificationSubmissionSerializer(data=request.data)
         if serializer.is_valid():
             try:
                 with transaction.atomic():
-                    # initialize poster_documents if None
                     if profile.poster_documents is None:
                         profile.poster_documents = []
 
-                    # add new document to list
                     document_data = {
                         "id": str(uuid.uuid4()),
                         "submitted_at": timezone.now().isoformat(),
                         **serializer.validated_data,
                     }
 
-                    # add document to list
                     profile.poster_documents.append(document_data)
                     profile.poster_verification_status = "pending"
                     profile.save()
@@ -269,13 +260,12 @@ class VerificationViewSet(ViewSet):
                         status=status.HTTP_201_CREATED,
                     )
             except Exception as e:
-                return Response(
-                    {
-                        "error": "An error occurred while submitting the verification document",
-                    },
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                import logging
+                logging.error(f"Error submitting verification document for user {getattr(profile.user, 'email', None)}: {e}")
+                return self._error_response(
+                    "An error occurred while submitting the verification document",
+                    status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
-
         else:
             return Response(
                 {
@@ -284,6 +274,15 @@ class VerificationViewSet(ViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+    def _get_profile_or_error(self, request):
+        profile = get_profile_for_user(request)
+        if profile is None:
+            return Response({"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
+        return profile
+
+    def _error_response(self, message, status_code):
+        return Response({"error": message}, status=status_code)
 
     @action(detail=False, methods=["get"], permission_classes=[IsOwnerOrAgent])
     def status(self, request):
@@ -428,23 +427,22 @@ class AdminVerificationViewSet(ListModelMixin, ViewSet):
         """
         Reject a verification request.
         """
-        profile = get_profile_for_user(request)
-        if profile is None:
-            return Response(
-                {"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND
-            )
+        profile = self._get_profile_or_error(request)
+        if isinstance(profile, Response):
+            return profile
 
-        # Get rejection reason from request
         rejection_reason = request.data.get("reason", "Verification Rejected")
+        if not isinstance(rejection_reason, str) or len(rejection_reason) > 100:
+            return self._error_response(
+                "Rejection reason must be a string up to 255 characters.", status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             with transaction.atomic():
-                # update verification status
                 profile.poster_verification_status = "rejected"
                 profile.verified_at = None
                 profile.is_verified_poster = False
 
-                # Add rejection reason to poster_documents
                 if profile.poster_documents is None:
                     profile.poster_documents = []
 
@@ -467,9 +465,18 @@ class AdminVerificationViewSet(ListModelMixin, ViewSet):
                     status=status.HTTP_200_OK,
                 )
         except Exception as e:
-            return Response(
-                {
-                    "error": "An error occurred while rejecting the verification request",
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            import logging
+            logging.error(f"Error rejecting verification request for user {getattr(profile.user, 'email', None)}: {e}")
+            return self._error_response(
+                "An error occurred while rejecting the verification request",
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+    def _get_profile_or_error(self, request):
+        profile = get_profile_for_user(request)
+        if profile is None:
+            return Response({"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
+        return profile
+
+    def _error_response(self, message, status_code):
+        return Response({"error": message}, status=status_code)
