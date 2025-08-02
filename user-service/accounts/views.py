@@ -10,7 +10,7 @@ from django.db import transaction
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.viewsets import ViewSet
-from .role_router import get_serializer_for_user
+from .utility import get_serializer_for_user, get_profile_for_user
 from .models import UserProfile
 from .serializers import (
     VerificationSubmissionSerializer,
@@ -68,9 +68,8 @@ class Profile(APIView):
         """
         Returns the user profile based on the user's role.
         """
-        try:
-            profile = request.user.profile
-        except UserProfile.DoesNotExist:
+        profile = get_profile_for_user(request)
+        if profile is None:
             return Response(
                 {"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND
             )
@@ -106,9 +105,8 @@ class Profile(APIView):
         """
         Helper method to update the user profile.
         """
-        try:
-            profile = request.user.profile
-        except UserProfile.DoesNotExist:
+        profile = get_profile_for_user(request)
+        if profile is None:
             return Response(
                 {"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND
             )
@@ -229,12 +227,10 @@ class VerificationViewSet(ViewSet):
         """
         Submit a verification document for the user.
         """
-        try:
-            profile = request.user.profile
-        except UserProfile.DoesNotExist:
+        profile = get_profile_for_user(request)
+        if profile is None:
             return Response(
-                {"error": "Profile not found"},
-                status=status.HTTP_404_NOT_FOUND,
+                {"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
         # check if already verified
@@ -294,12 +290,10 @@ class VerificationViewSet(ViewSet):
         """
         Get the verification status of the user.
         """
-        try:
-            profile = request.user.profile
-        except UserProfile.DoesNotExist:
+        profile = get_profile_for_user(request)
+        if profile is None:
             return Response(
-                {"error": "Profile not found"},
-                status=status.HTTP_404_NOT_FOUND,
+                {"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
         serializer = VerificationStatusSerializer(profile)
@@ -316,12 +310,10 @@ class VerificationViewSet(ViewSet):
         """
         Check if the user can post property.
         """
-        try:
-            profile = request.user.profile
-        except UserProfile.DoesNotExist:
+        profile = get_profile_for_user(request)
+        if profile is None:
             return Response(
-                {"error": "Profile not found"},
-                status=status.HTTP_404_NOT_FOUND,
+                {"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
         can_post = profile.can_post_property
@@ -395,12 +387,10 @@ class AdminVerificationViewSet(ListModelMixin, ViewSet):
         """
         Approve a verification request.
         """
-        try:
-            profile = UserProfile.objects.get(id=pk)
-        except UserProfile.DoesNotExist:
+        profile = get_profile_for_user(request)
+        if profile is None:
             return Response(
-                {"error": "Profile not found"},
-                status=status.HTTP_404_NOT_FOUND,
+                {"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
         # check if already verified
@@ -438,12 +428,10 @@ class AdminVerificationViewSet(ListModelMixin, ViewSet):
         """
         Reject a verification request.
         """
-        try:
-            profile = UserProfile.objects.get(id=pk)
-        except UserProfile.DoesNotExist:
+        profile = get_profile_for_user(request)
+        if profile is None:
             return Response(
-                {"error": "Profile not found"},
-                status=status.HTTP_404_NOT_FOUND,
+                {"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
         # Get rejection reason from request

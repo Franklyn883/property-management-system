@@ -6,7 +6,8 @@ from .serializers import (
     AgentProfileSerializer,
     TenantProfileSerializer,
 )
-
+from rest_framework import status
+from rest_framework.response import Response
 
 def get_serializer_for_user(user):
     """
@@ -46,3 +47,19 @@ def get_serializer_for_role(role):
     }
 
     return role_serializer_map.get(role, UserProfileSerializer)
+
+
+def get_profile_for_user(request):
+    """
+    Get the profile instance for a specific user.
+
+    Args:
+        user: The user object to get the profile for.
+
+    Returns:
+        The profile instance for the user.
+    """
+    try:
+        return request.user.profile
+    except UserProfile.DoesNotExist:
+        return None
