@@ -22,6 +22,13 @@ from .auth_views import (
     RateLimitedLogoutView,
     RateLimitedPasswordResetView,
 )
+from .admin_security_views import (
+    AdminSecurityStatsView,
+    AdminBlockedIPsView,
+    AdminUnblockIPView,
+    AdminSecurityAuditView,
+    AdminCleanupSecurityDataView,
+)
 from rest_framework.routers import DefaultRouter
 
 # create router for ViewSets
@@ -85,6 +92,12 @@ urlpatterns = [
     ),
     # user profile
     path("profile", Profile.as_view(), name="user_profile"),
+    # admin security endpoints
+    path("admin/security/stats", AdminSecurityStatsView.as_view(), name="admin_security_stats"),
+    path("admin/security/blocked-ips", AdminBlockedIPsView.as_view(), name="admin_blocked_ips"),
+    path("admin/security/unblock-ip/<str:ip_address>", AdminUnblockIPView.as_view(), name="admin_unblock_ip"),
+    path("admin/security/audit-logs", AdminSecurityAuditView.as_view(), name="admin_security_audit"),
+    path("admin/security/cleanup", AdminCleanupSecurityDataView.as_view(), name="admin_security_cleanup"),
     # include router urls
     path("", include(router.urls)),
 ]
