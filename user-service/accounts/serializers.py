@@ -198,3 +198,72 @@ class CustomRegisterSerializer(RegisterSerializer):
         # Use allauth's registration flow instead of creating user directly
         user = super().save(request)
         return user
+    
+class VerificationSubmissionSerializer(serializers.Serializer):
+    """
+    Serializer for poster verification submission.
+    """
+    document_type = serializers.ChoiceField(
+        choices=[
+            ("identity", "Identity Document"),
+            ("ownership", "Property Ownership Document"),
+            ("license", "Real Estate License"),
+            ("business", "Business Registration"),
+            ("other", "Other")
+        ])
+    document_name = serializers.CharField(max_length=255)
+    document_file = serializers.URLField(help_text="URL of the document file")
+    description = serializers.CharField(max_length=500, required=False)
+    
+    def validate_document_url(self,value):
+        """
+        Validate the document URL format.
+        """
+        if not value.startswith("https://", "http://"):
+            raise serializers.ValidationError("Document URL must be a valid HTTP/HTTPS URL")
+        return value
+    
+class VerificationStatusSerializer(serializers.ModelSerializer):
+    """
+    Serializer for verification status.
+    """
+    class Meta:
+        model = UserProfile
+        fields = [
+            "is_verified_poster",
+            "poster_verification_status", 
+            "verified_at",
+            "user_email",
+            "user_role",
+            "can_post_property",
+
+            ]
+    def get_can_post_property(self, obj):
+        """
+        Determine if the user can post property.
+        """
+        return obj.can_post_property
+    
+class AdminVerificationSerializer(serializers.ModelSerializer):
+    """
+    Serializer for admin verification management.
+    """
+    class Meta:
+        model = UserProfile
+        fields = [
+            "id",
+            "user_email",
+            "user_role",
+            "full_name",
+            "is_verified_poster",
+            "poster_verification_status",
+            "poster_documents",
+            "verified_at",
+            "date_joined",]
+        
+    def get_full_name(self, obj):
+        """
+        Get the full name of the user.
+        """
+        return obj.get_full_name
+    
