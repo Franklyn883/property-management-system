@@ -5,7 +5,16 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .views import (InternalUserDetailView,
                     Profile,
+                    VerificationViewSet,
+                    AdminVerificationViewSet,
                     )
+from rest_framework.routers import DefaultRouter
+
+#create router for ViewSets
+router = DefaultRouter()
+router.register(r'profile/verification', VerificationViewSet, basename='verification')
+router.register(r'admin/verification', AdminVerificationViewSet, basename='admin-verification')
+
 
 
 urlpatterns = [
@@ -35,5 +44,7 @@ urlpatterns = [
     ),
     # user profile
     path("profile", Profile.as_view(), name="user_profile"),
-  
+    
+    # include router urls       
+    path('', include(router.urls)),
 ]
