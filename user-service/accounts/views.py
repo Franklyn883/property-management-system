@@ -788,5 +788,184 @@ class AdminUserViewSet(ListModelMixin, ViewSet):
             },
             status=status.HTTP_200_OK,
         )
+
+    @action(detail=False, methods=["post"])
+    def bulk_activate(self, request):
+        """
+        Bulk activate multiple users.
+        """
+        user_ids = request.data.get("user_ids", [])
+        
+        if not user_ids:
+            return Response(
+                {"error": "user_ids is required and must be a list"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        if not isinstance(user_ids, list):
+            return Response(
+                {"error": "user_ids must be a list"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        try:
+            users = User.objects.filter(id__in=user_ids)
+            activated_count = 0
+            already_active_count = 0
+            
+            for user in users:
+                if not user.is_active:
+                    user.is_active = True
+                    user.save()
+                    activated_count += 1
+                else:
+                    already_active_count += 1
+            
+            return Response(
+                {
+                    "status": "success",
+                    "message": f"Bulk activation completed. {activated_count} users activated, {already_active_count} were already active",
+                    "data": {
+                        "activated_count": activated_count,
+                        "already_active_count": already_active_count,
+                        "total_processed": len(users),
+                    },
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response(
+                {
+                    "error": "An error occurred during bulk activation",
+                    "detail": str(e),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(detail=False, methods=["post"])
+    def bulk_deactivate(self, request):
+        """
+        Bulk deactivate multiple users.
+        """
+        user_ids = request.data.get("user_ids", [])
+        
+        if not user_ids:
+            return Response(
+                {"error": "user_ids is required and must be a list"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        if not isinstance(user_ids, list):
+            return Response(
+                {"error": "user_ids must be a list"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        try:
+            users = User.objects.filter(id__in=user_ids)
+            deactivated_count = 0
+            already_inactive_count = 0
+            
+            for user in users:
+                if user.is_active:
+                    user.is_active = False
+                    user.save()
+                    deactivated_count += 1
+                else:
+                    already_inactive_count += 1
+            
+            return Response(
+                {
+                    "status": "success",
+                    "message": f"Bulk deactivation completed. {deactivated_count} users deactivated, {already_inactive_count} were already inactive",
+                    "data": {
+                        "deactivated_count": deactivated_count,
+                        "already_inactive_count": already_inactive_count,
+                        "total_processed": len(users),
+                    },
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response(
+                {
+                    "error": "An error occurred during bulk deactivation",
+                    "detail": str(e),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(detail=False, methods=["post"])
+    def bulk_change_role(self, request):
+        """
+        Bulk change role for multiple users.
+        """
+        user_ids = request.data.get("user_ids", [])
+        new_role = request.data.get("role")
+        
+        if not user_ids:
+            return Response(
+                {"error": "user_ids is required and must be a list"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        if not isinstance(user_ids, list):
+            return Response(
+                {"error": "user_ids must be a list"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        if not new_role:
+            return Response(
+                {"error": "role is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        if new_role == "admin":
+            return Response(
+                {"error": "Cannot change user role to admin via API"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        if new_role not in dict(User._meta.get_field('role').choices):
+            return Response(
+                {"error": "Invalid role"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        try:
+            users = User.objects.filter(id__in=user_ids)
+            changed_count = 0
+            already_correct_role_count = 0
+            
+            for user in users:
+                if user.role != new_role:
+                    user.role = new_role
+                    user.save()
+                    changed_count += 1
+                else:
+                    already_correct_role_count += 1
+            
+            return Response(
+                {
+                    "status": "success",
+                    "message": f"Bulk role change completed. {changed_count} users role changed to {new_role}, {already_correct_role_count} already had the correct role",
+                    "data": {
+                        "changed_count": changed_count,
+                        "already_correct_role_count": already_correct_role_count,
+                        "new_role": new_role,
+                        "total_processed": len(users),
+                    },
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response(
+                {
+                    "error": "An error occurred during bulk role change",
+                    "detail": str(e),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
     
     
