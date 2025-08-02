@@ -7,6 +7,9 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from io import StringIO
 from allauth.account.models import EmailAddress
+from django.contrib import admin
+from django.test import Client
+from django.urls import reverse
 
 User = get_user_model()
 
@@ -140,3 +143,35 @@ class SyncEmailVerificationCommandTest(TestCase):
         self.assertIn('- user1@example.com (ID:', output)
         self.assertIn('Users already verified:', output)
         self.assertIn('- user3@example.com (ID:', output)
+
+
+class AdminPanelTest(TestCase):
+    """Test that admin models are properly registered and accessible"""
+    
+    def setUp(self):
+        # Create a superuser for admin access
+        self.admin_user = User.objects.create_superuser(
+            email='admin@example.com',
+            password='adminpass123'
+        )
+        self.client = Client()
+        self.client.login(email='admin@example.com', password='adminpass123')
+    
+    def test_admin_models_registered(self):
+        """Test that CustomUser and UserProfile are registered in admin"""
+        from django.contrib import admin
+        
+        # Check that models are registered
+        self.assertIn(User, admin.site._registry)
+        from .models import UserProfile
+        self.assertIn(UserProfile, admin.site._registry)
+    
+    def test_admin_list_views_accessible(self):
+        """Test that admin list views are accessible"""
+        # Test CustomUser admin
+        response = self.client.get(reverse('admin:accounts_customuser_changelist'))
+        self.assertEqual(response.status_code, 200)
+        
+        # Test UserProfile admin
+        response = self.client.get(reverse('admin:accounts_userprofile_changelist'))
+        self.assertEqual(response.status_code, 200)
