@@ -9,10 +9,15 @@ from django.conf import settings
 from django.db import transaction
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
-
+from rest_framework.viewsets import ViewSet
 from .role_router import get_serializer_for_user
 from .models import UserProfile
-from .serializers import 
+from .serializers import (
+    VerificationSubmissionSerializer,
+    VerificationStatusSerializer,
+    AdminVerificationSerializer,
+)
+from .permissions import IsOwnerOrAgent, IsAdmin
 
 User = get_user_model()
 
@@ -204,4 +209,273 @@ class Profile(APIView):
             return None
 
 
-
+class VerificationViewSet(ViewSet):
+    """
+    Viewset for poster verification management.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    @action(detail=False, methods=["post"], permission_classes=[IsOwnerOrAgent])
+    def submit(self, request):
+        """
+        Submit a verification document for the user.
+        """
+        try:
+            profile = request.user.profile
+        except UserProfile.DoesNotExist:
+            return Response(
+                {
+                    "error": "Profile not found"
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+    
+        #check if already verified
+        if profile.is_verified_poster:
+            return Response(
+                {
+                    "error": "User already verified"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+            
+        serializer = VerificationSubmissionSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                with transaction.atomic():
+                    # initialize poster_documents if None
+                    if profile.poster_documents is None:
+                        profile.poster_documents = []
+                        
+                    #add new document to list
+                    document_data = {
+                        "id": str(uuid.uuid4()),
+                        "submitted_at": timezone.now().isoformat(),
+                        **serializer.validated_data,
+                    }
+                    
+                    #add document to list
+                    profile.poster_documents.append(document_data)
+                    profile.poster_verification_status = "pending"
+                    profile.save()
+                    
+                    return Response(
+                        {
+                            "status": "success",
+                            "message": "Verification document submitted successfully",
+                            "verification_status": "pending",
+                        },
+                        status=status.HTTP_201_CREATED,
+                    )
+                except Exception as e:
+                    return Response(
+                        {
+                            "error": "An error occurred while submitting the verification document",
+                        },
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
+        
+        else:
+            return Response(
+                {
+                    "status": "error",
+                    "errors": serializer.errors,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+            
+    @action(detail=False, methods=["get"], permission_classes=[IsOwnerOrAgent])
+    def status(self, request):
+        """
+        Get the verification status of the user.
+        """
+        try:
+            profile = request.user.profile
+        except UserProfile.DoesNotExist:
+            return Response(
+                {
+                    "error": "Profile not found"
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+            
+        serializer = VerificationStatusSerializer(profile)
+        return Response(
+            {
+                "status": "success",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+        
+    @action(detail=False, methods=["get"], permission_classes=[IsOwnerOrAgent])
+    def can_post(self, request):
+        """
+        Check if the user can post property.
+        """
+        try:
+            profile = request.user.profile
+        except UserProfile.DoesNotExist:
+            return Response(
+                {
+                    "error": "Profile not found"
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+            
+        can_post = profile.can_post_property
+        return Response(
+            {
+                "status": "success",
+                "can_post": can_post,
+                "reason": "User is verified" if can_post else "User is not verified",
+            },
+            status=status.HTTP_200_OK,
+        )
+        
+class AdminVerificationViewSet(ViewSet):
+    """
+    Viewset for admin verification management.
+    """
+    permission_classes = [IsAuthenticated, IsAdmin]
+    
+    @action(detail=False, methods=["get"], permission_classes=[IsAdmin])
+    def list(self, request):
+        """
+        Get the list of verification requests for admin.
+        """
+        # Get query paremeters for filtering
+        status_filter = request.query_params.get("status", None)
+        role_filter = request.query_params.get("role", None)
+        search_query = request.query_params.get("search", None)
+        
+        # Get all profiles
+        queryset = UserProfile.objects.filter(
+            poster_documents__isnull=False,
+        ).exclude(poster_documents=[])
+        
+        # Apply filters
+        if status_filter:
+            queryset = queryset.filter(poster_verification_status=status_filter)
+        if role_filter:
+            queryset = queryset.filter(user__role=role_filter)
+        if search_query:
+            queryset = queryset.filter(
+                Q(user__email__icontains=search_query) |
+                Q(user__first_name__icontains=search_query) |
+                Q(user__last_name__icontains=search_query)
+            )
+        
+        # Order by submission date
+        queryset = queryset.order_by("user__date_joined")
+        
+        # Pagination
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = AdminVerificationSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = AdminVerificationSerializer(queryset, many=True)
+        return Response(
+            {
+                "status": "success",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+        
+    @action(detail=True, methods=["post"])
+    def approve(self, request, pk=None):
+        """
+        Approve a verification request.
+        """
+        try:
+            profile = UserProfile.get_object(id=pk)
+        except UserProfile.DoesNotExist:
+            return Response(
+                {
+                    "error": "Profile not found"
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+            
+        #check if already verified
+        if profile.is_verified_poster:
+            return Response(
+                {
+                    "error": "User already verified"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+            
+        try:
+            with transaction.atomic():
+                #update verification status
+                profile.is_verified_poster = True
+                profile.poster_verification_status = "approved"
+                profile.verified_at = timezone.now()
+                profile.save()
+                
+               return Response({
+                   "status": "success",
+                   "message":f"User {profile.user.email} has been verified successfully"
+               }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {
+                    "error": "An error occurred while approving the verification request",
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        
+    @action(detail=True, methods=["post"])
+    def reject(self, request, pk=None):
+        """
+        Reject a verification request.
+        """
+        try:
+            profile = UserProfile.get_object(id=pk)
+        except UserProfile.DoesNotExist:
+            return Response(
+                {
+                    "error": "Profile not found"
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+            
+        # Get rejection reason from request
+        rejection_reason = request.data.get("reason", "Verification Rejected")
+        
+        try:
+            with transaction.atomic():
+                #update verification status
+                profile.poster_verification_status = "rejected"
+                profile.verified_at = None
+                profile.is_verified_poster = False
+                
+                # Add rejection reason to poster_documents
+                if profile.poster_documents is None:
+                    profile.poster_documents = []
+                    
+                rejection_data = {
+                    "id": str(uuid.uuid4()),
+                    "type": "rejection",
+                    "reason": rejection_reason,
+                    "rejected_at": timezone.now().isoformat(),
+                    "rejected_by": request.user.email,
+                }
+                
+                profile.poster_documents.append(rejection_data)         
+                profile.save()
+                
+                return Response({
+                    "status": "success",
+                    "message": f"User {profile.user.email} has been rejected successfully",
+                }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {
+                    "error": "An error occurred while rejecting the verification request",
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
