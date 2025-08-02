@@ -215,14 +215,15 @@ class VerificationSubmissionSerializer(serializers.Serializer):
         ]
     )
     document_name = serializers.CharField(max_length=255)
-    document_file = serializers.URLField(help_text="URL of the document file")
+    document_url = serializers.URLField(help_text="URL of the document file")
     description = serializers.CharField(max_length=500, required=False)
 
     def validate_document_url(self, value):
         """
         Validate the document URL format.
         """
-        if not value.startswith("https://", "http://"):
+        valid_schemes = ["https://", "http://", "localhost"]
+        if not any(value.startswith(scheme) for scheme in valid_schemes):
             raise serializers.ValidationError(
                 "Document URL must be a valid HTTP/HTTPS URL"
             )

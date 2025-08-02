@@ -110,6 +110,12 @@ user_env
 # mkdocs documentation 
 /site 
 
+# API Documentation
+API_DOCUMENTATION.md
+todo.md
+property.txt
+service-workflow.md
+
 # mypy 
 .mypy_cache/ 
 
@@ -145,3 +151,4 @@ build
 npm-debug.log
 .env
 .DS_Store
+docs/

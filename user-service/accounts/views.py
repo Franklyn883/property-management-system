@@ -213,6 +213,8 @@ class Profile(APIView):
             return user.profile
         except UserProfile.DoesNotExist:
             return None
+        
+        
 
 
 class VerificationViewSet(ViewSet):
@@ -347,7 +349,7 @@ class AdminVerificationViewSet(ListModelMixin, ViewSet):
         """
         Get the list of verification requests for admin.
         """
-        # Get query paremeters for filtering
+        # Get query parameters for filtering
         status_filter = request.query_params.get("status", None)
         role_filter = request.query_params.get("role", None)
         search_query = request.query_params.get("search", None)
@@ -394,7 +396,7 @@ class AdminVerificationViewSet(ListModelMixin, ViewSet):
         Approve a verification request.
         """
         try:
-            profile = UserProfile.get_object(id=pk)
+            profile = UserProfile.objects.get(id=pk)
         except UserProfile.DoesNotExist:
             return Response(
                 {"error": "Profile not found"},
@@ -437,7 +439,7 @@ class AdminVerificationViewSet(ListModelMixin, ViewSet):
         Reject a verification request.
         """
         try:
-            profile = UserProfile.get_object(id=pk)
+            profile = UserProfile.objects.get(id=pk)
         except UserProfile.DoesNotExist:
             return Response(
                 {"error": "Profile not found"},
