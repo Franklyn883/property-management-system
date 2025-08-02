@@ -29,6 +29,16 @@ from .admin_security_views import (
     AdminSecurityAuditView,
     AdminCleanupSecurityDataView,
 )
+from .agent_views import (
+    AgentLicenseViewSet,
+    AgentAgencyViewSet,
+    AgentStatsView,
+)
+from .owner_views import (
+    OwnerPropertyViewSet,
+    OwnerVerificationViewSet,
+    OwnerAnalyticsView,
+)
 from rest_framework.routers import DefaultRouter
 
 # create router for ViewSets
@@ -98,6 +108,18 @@ urlpatterns = [
     path("admin/security/unblock-ip/<str:ip_address>", AdminUnblockIPView.as_view(), name="admin_unblock_ip"),
     path("admin/security/audit-logs", AdminSecurityAuditView.as_view(), name="admin_security_audit"),
     path("admin/security/cleanup", AdminCleanupSecurityDataView.as_view(), name="admin_security_cleanup"),
+    # agent endpoints
+    path("agent/license", AgentLicenseViewSet.as_view({'get': 'get_license', 'put': 'update_license'}), name="agent_license"),
+    path("agent/license/upload", AgentLicenseViewSet.as_view({'post': 'upload_document'}), name="agent_upload_document"),
+    path("agent/license/status", AgentLicenseViewSet.as_view({'get': 'get_license_status'}), name="agent_license_status"),
+    path("agent/agency", AgentAgencyViewSet.as_view({'get': 'get_agency_info', 'put': 'update_agency_info'}), name="agent_agency"),
+    path("agent/stats", AgentStatsView.as_view(), name="agent_stats"),
+    # owner endpoints
+    path("owner/property", OwnerPropertyViewSet.as_view({'get': 'get_property_info', 'put': 'update_property_info'}), name="owner_property"),
+    path("owner/property/upload", OwnerPropertyViewSet.as_view({'post': 'upload_document'}), name="owner_upload_document"),
+    path("owner/verification", OwnerVerificationViewSet.as_view({'get': 'get_verification_status'}), name="owner_verification"),
+    path("owner/verification/requirements", OwnerVerificationViewSet.as_view({'get': 'get_verification_requirements'}), name="owner_verification_requirements"),
+    path("owner/analytics", OwnerAnalyticsView.as_view(), name="owner_analytics"),
     # include router urls
     path("", include(router.urls)),
 ]
