@@ -27,7 +27,7 @@ router.register(
     r"profile/verification", VerificationViewSet, basename="verification"
 )
 router.register(
-    r"admin/verification",
+    r"admin/verifications",
     AdminVerificationViewSet,
     basename="admin-verification",
 )

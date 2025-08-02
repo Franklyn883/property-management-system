@@ -22,6 +22,8 @@ from django.utils import timezone
 from rest_framework.decorators import action
 import uuid
 from django.db.models import Q
+from rest_framework.mixins import ListModelMixin
+from rest_framework.pagination import PageNumberPagination
 
 User = get_user_model()
 
@@ -333,12 +335,13 @@ class VerificationViewSet(ViewSet):
         )
 
 
-class AdminVerificationViewSet(ViewSet):
+class AdminVerificationViewSet(ListModelMixin, ViewSet):
     """
     Viewset for admin verification management.
     """
 
-    permission_classes = [IsAuthenticated, IsAdmin]
+    permission_classes = [IsAuthenticated, IsAdmin]     
+    pagination_class = PageNumberPagination
 
     def list(self, request):
         """
@@ -370,7 +373,8 @@ class AdminVerificationViewSet(ViewSet):
         queryset = queryset.order_by("user__date_joined")
 
         # Pagination
-        page = self.paginate_queryset(queryset)
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(queryset, request)
         if page is not None:
             serializer = AdminVerificationSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)

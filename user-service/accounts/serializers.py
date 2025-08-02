@@ -233,6 +233,9 @@ class VerificationStatusSerializer(serializers.ModelSerializer):
     """
     Serializer for verification status.
     """
+    user_email = serializers.CharField(source="user.email", read_only=True)
+    user_role = serializers.CharField(source="user.role", read_only=True)
+    can_post_property = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -256,7 +259,11 @@ class AdminVerificationSerializer(serializers.ModelSerializer):
     """
     Serializer for admin verification management.
     """
-
+    user_email = serializers.CharField(source="user.email", read_only=True)
+    user_role = serializers.CharField(source="user.role", read_only=True)
+    full_name = serializers.SerializerMethodField()
+    date_joined = serializers.DateTimeField(source="user.date_joined", read_only=True)
+    
     class Meta:
         model = UserProfile
         fields = [
