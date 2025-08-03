@@ -9,6 +9,7 @@ from .serializers import (
 from rest_framework import status
 from rest_framework.response import Response
 
+
 def get_serializer_for_user(user):
     """
     Determines and returns the profile serializer class based on the user's role.
@@ -25,7 +26,8 @@ def get_serializer_for_user(user):
         "agent": AgentProfileSerializer,
         "tenant": TenantProfileSerializer,
     }
-    # Return the specific serializer for the role, or the base UserProfileSerializer if the role is 'user' or not found.
+    # Return the specific serializer for the role, or the base 
+    # UserProfileSerializer if the role is 'user' or not found.
     return role_serializer_map.get(user.role, UserProfileSerializer)
 
 

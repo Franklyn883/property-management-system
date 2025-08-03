@@ -26,11 +26,11 @@ class CustomUserSerializer(serializers.ModelSerializer, ValidationMixin):
             "role",
             "is_verified",
         ]
-    
+
     def validate_email(self, value):
         """Validate email format and domain."""
         return self.validate_email_domain(value)
-    
+
     def validate_phone_number(self, value):
         """Validate phone number format."""
         if value:
@@ -254,6 +254,7 @@ class VerificationStatusSerializer(serializers.ModelSerializer):
     """
     Serializer for verification status.
     """
+
     user_email = serializers.CharField(source="user.email", read_only=True)
     user_role = serializers.CharField(source="user.role", read_only=True)
     can_post_property = serializers.SerializerMethodField()
@@ -280,11 +281,14 @@ class AdminVerificationSerializer(serializers.ModelSerializer):
     """
     Serializer for admin verification management.
     """
+
     user_email = serializers.CharField(source="user.email", read_only=True)
     user_role = serializers.CharField(source="user.role", read_only=True)
     full_name = serializers.SerializerMethodField()
-    date_joined = serializers.DateTimeField(source="user.date_joined", read_only=True)
-    
+    date_joined = serializers.DateTimeField(
+        source="user.date_joined", read_only=True
+    )
+
     class Meta:
         model = UserProfile
         fields = [
@@ -310,31 +314,36 @@ class AdminUserListSerializer(serializers.ModelSerializer):
     """
     Serializer for admin user listing with basic user information.
     """
+
     full_name = serializers.SerializerMethodField()
-    profile_id = serializers.UUIDField(source='profile.id', read_only=True)
-    is_verified_poster = serializers.BooleanField(source='profile.is_verified_poster', read_only=True)
-    poster_verification_status = serializers.CharField(source='profile.poster_verification_status', read_only=True)
+    profile_id = serializers.UUIDField(source="profile.id", read_only=True)
+    is_verified_poster = serializers.BooleanField(
+        source="profile.is_verified_poster", read_only=True
+    )
+    poster_verification_status = serializers.CharField(
+        source="profile.poster_verification_status", read_only=True
+    )
     date_joined = serializers.DateTimeField(read_only=True)
     last_login = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = CustomUser
         fields = [
-            'id',
-            'email',
-            'phone_number',
-            'role',
-            'is_active',
-            'is_verified',
-            'is_staff',
-            'full_name',
-            'profile_id',
-            'is_verified_poster',
-            'poster_verification_status',
-            'date_joined',
-            'last_login',
+            "id",
+            "email",
+            "phone_number",
+            "role",
+            "is_active",
+            "is_verified",
+            "is_staff",
+            "full_name",
+            "profile_id",
+            "is_verified_poster",
+            "poster_verification_status",
+            "date_joined",
+            "last_login",
         ]
-        read_only_fields = ['id', 'date_joined', 'last_login']
+        read_only_fields = ["id", "date_joined", "last_login"]
 
     def get_full_name(self, obj):
         """Get the full name from the user's profile."""
@@ -348,30 +357,35 @@ class AdminUserDetailSerializer(serializers.ModelSerializer):
     """
     Serializer for admin user detail with comprehensive user information.
     """
+
     profile = UserProfileSerializer(read_only=True)
     full_name = serializers.SerializerMethodField()
-    is_verified_poster = serializers.BooleanField(source='profile.is_verified_poster', read_only=True)
-    poster_verification_status = serializers.CharField(source='profile.poster_verification_status', read_only=True)
+    is_verified_poster = serializers.BooleanField(
+        source="profile.is_verified_poster", read_only=True
+    )
+    poster_verification_status = serializers.CharField(
+        source="profile.poster_verification_status", read_only=True
+    )
 
     class Meta:
         model = CustomUser
         fields = [
-            'id',
-            'email',
-            'phone_number',
-            'role',
-            'is_active',
-            'is_verified',
-            'is_staff',
-            'full_name',
-            'profile',
-            'is_verified_poster',
-            'poster_verification_status',
-            'date_joined',
-            'last_login',
-            'updated_at',
+            "id",
+            "email",
+            "phone_number",
+            "role",
+            "is_active",
+            "is_verified",
+            "is_staff",
+            "full_name",
+            "profile",
+            "is_verified_poster",
+            "poster_verification_status",
+            "date_joined",
+            "last_login",
+            "updated_at",
         ]
-        read_only_fields = ['id', 'date_joined', 'last_login', 'updated_at']
+        read_only_fields = ["id", "date_joined", "last_login", "updated_at"]
 
     def get_full_name(self, obj):
         """Get the full name from the user's profile."""
@@ -385,26 +399,26 @@ class AdminUserActionSerializer(serializers.Serializer):
     """
     Serializer for admin user actions like role change, activation, etc.
     """
+
     role = serializers.ChoiceField(
-        choices=CustomUser._meta.get_field('role').choices,
+        choices=CustomUser._meta.get_field("role").choices,
         required=False,
-        help_text="New role for the user"
+        help_text="New role for the user",
     )
     is_active = serializers.BooleanField(
-        required=False,
-        help_text="Whether the user account is active"
+        required=False, help_text="Whether the user account is active"
     )
     is_staff = serializers.BooleanField(
-        required=False,
-        help_text="Whether the user has staff privileges"
+        required=False, help_text="Whether the user has staff privileges"
     )
     is_verified = serializers.BooleanField(
-        required=False,
-        help_text="Whether the user's email is verified"
+        required=False, help_text="Whether the user's email is verified"
     )
 
     def validate_role(self, value):
         """Validate role change."""
-        if value == 'admin':
-            raise serializers.ValidationError("Cannot change user role to admin via API")
+        if value == "admin":
+            raise serializers.ValidationError(
+                "Cannot change user role to admin via API"
+            )
         return value

@@ -24,10 +24,10 @@ def create_user_profile(sender, instance, created, **kwargs):
 def handle_email_confirmation(sender, email_address, **kwargs):
     """
     Sets the user's is_verified field to True when their email is confirmed by allauth.
-    
+
     This signal is triggered when a user confirms their email address through allauth.
     """
     user = email_address.user
     if user and not user.is_verified:
         user.is_verified = True
-        user.save(update_fields=['is_verified'])
+        user.save(update_fields=["is_verified"])
