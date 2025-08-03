@@ -39,6 +39,16 @@ from .owner_views import (
     OwnerVerificationViewSet,
     OwnerAnalyticsView,
 )
+from .tenant_views import (
+    TenantPreferenceViewSet,
+    TenantHistoryViewSet,
+    TenantRatingViewSet,
+)
+from .manager_views import (
+    ManagerAssignmentViewSet,
+    ManagerMaintenanceViewSet,
+    ManagerDashboardView,
+)
 from rest_framework.routers import DefaultRouter
 
 # create router for ViewSets
@@ -120,6 +130,24 @@ urlpatterns = [
     path("owner/verification", OwnerVerificationViewSet.as_view({'get': 'get_verification_status'}), name="owner_verification"),
     path("owner/verification/requirements", OwnerVerificationViewSet.as_view({'get': 'get_verification_requirements'}), name="owner_verification_requirements"),
     path("owner/analytics", OwnerAnalyticsView.as_view(), name="owner_analytics"),
+    # tenant endpoints
+    path("tenant/preferences", TenantPreferenceViewSet.as_view({'get': 'get_preferences', 'put': 'update_preferences'}), name="tenant_preferences"),
+    path("tenant/preferences/suggestions", TenantPreferenceViewSet.as_view({'get': 'get_preference_suggestions'}), name="tenant_preference_suggestions"),
+    path("tenant/history", TenantHistoryViewSet.as_view({'get': 'get_history'}), name="tenant_history"),
+    path("tenant/history/add", TenantHistoryViewSet.as_view({'post': 'add_history_entry'}), name="tenant_add_history"),
+    path("tenant/history/stats", TenantHistoryViewSet.as_view({'get': 'get_history_stats'}), name="tenant_history_stats"),
+    path("tenant/ratings", TenantRatingViewSet.as_view({'get': 'get_ratings'}), name="tenant_ratings"),
+    path("tenant/ratings/add", TenantRatingViewSet.as_view({'post': 'add_rating'}), name="tenant_add_rating"),
+    path("tenant/ratings/breakdown", TenantRatingViewSet.as_view({'get': 'get_rating_breakdown'}), name="tenant_rating_breakdown"),
+    # manager endpoints
+    path("manager/assignments", ManagerAssignmentViewSet.as_view({'get': 'get_assignments', 'put': 'update_assignments'}), name="manager_assignments"),
+    path("manager/assignments/add", ManagerAssignmentViewSet.as_view({'post': 'add_assignment'}), name="manager_add_assignment"),
+    path("manager/assignments/stats", ManagerAssignmentViewSet.as_view({'get': 'get_assignment_stats'}), name="manager_assignment_stats"),
+    path("manager/maintenance", ManagerMaintenanceViewSet.as_view({'get': 'get_maintenance_requests'}), name="manager_maintenance"),
+    path("manager/maintenance/add", ManagerMaintenanceViewSet.as_view({'post': 'add_maintenance_request'}), name="manager_add_maintenance"),
+    path("manager/maintenance/<str:request_id>/status", ManagerMaintenanceViewSet.as_view({'put': 'update_request_status'}), name="manager_update_request_status"),
+    path("manager/maintenance/stats", ManagerMaintenanceViewSet.as_view({'get': 'get_maintenance_stats'}), name="manager_maintenance_stats"),
+    path("manager/dashboard", ManagerDashboardView.as_view(), name="manager_dashboard"),
     # include router urls
     path("", include(router.urls)),
 ]
