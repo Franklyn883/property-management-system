@@ -1,5 +1,3 @@
-from rest_framework import viewsets
-from .serializers import AdminUserListSerializer, AdminUserDetailSerializer
 from django.shortcuts import render
 
 from rest_framework.views import APIView
@@ -12,9 +10,9 @@ from django.db import transaction
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.viewsets import ViewSet
-from .utility import get_serializer_for_user, get_profile_for_user
-from .models import UserProfile
-from .serializers import (
+from ..utilities.user_utility import get_serializer_for_user, get_profile_for_user
+from ..models import UserProfile
+from ..serializers.main_serializers import (
     VerificationSubmissionSerializer,
     VerificationStatusSerializer,
     AdminVerificationSerializer,
@@ -22,14 +20,14 @@ from .serializers import (
     AdminUserDetailSerializer,
     AdminUserActionSerializer,
 )
-from .permissions import IsOwnerOrAgent, IsAdmin
+from ..permissions import IsOwnerOrAgent, IsAdmin
 from django.utils import timezone
 from rest_framework.decorators import action
 import uuid
 from django.db.models import Q
 from rest_framework.mixins import ListModelMixin
 from rest_framework.pagination import PageNumberPagination
-from .rate_limiting import admin_rate_limit, profile_rate_limit, verification_rate_limit
+from ..rate_limiting.rate_limiting import admin_rate_limit, profile_rate_limit, verification_rate_limit
 
 User = get_user_model()
 

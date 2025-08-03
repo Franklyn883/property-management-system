@@ -1,5 +1,5 @@
-from .models import UserProfile
-from .serializers import (
+from ..models import UserProfile
+from ..serializers.main_serializers import (
     UserProfileSerializer,
     OwnerProfileSerializer,
     ManagerProfileSerializer,

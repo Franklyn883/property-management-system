@@ -9,42 +9,42 @@ from dj_rest_auth.views import (
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .views import (
+from .views.main_views import (
     InternalUserDetailView,
     Profile,
     VerificationViewSet,
     AdminVerificationViewSet,
     AdminUserViewSet,
 )
-from .auth_views import (
+from .views.auth_views import (
     RateLimitedLoginView,
     RateLimitedRegisterView,
     RateLimitedLogoutView,
     RateLimitedPasswordResetView,
 )
-from .admin_security_views import (
+from .views.admin_security_views import (
     AdminSecurityStatsView,
     AdminBlockedIPsView,
     AdminUnblockIPView,
     AdminSecurityAuditView,
     AdminCleanupSecurityDataView,
 )
-from .agent_views import (
+from .views.agent_views import (
     AgentLicenseViewSet,
     AgentAgencyViewSet,
     AgentStatsView,
 )
-from .owner_views import (
+from .views.owner_views import (
     OwnerPropertyViewSet,
     OwnerVerificationViewSet,
     OwnerAnalyticsView,
 )
-from .tenant_views import (
+from .views.tenant_views import (
     TenantPreferenceViewSet,
     TenantHistoryViewSet,
     TenantRatingViewSet,
 )
-from .manager_views import (
+from .views.manager_views import (
     ManagerAssignmentViewSet,
     ManagerMaintenanceViewSet,
     ManagerDashboardView,
@@ -71,11 +71,7 @@ router.register(
 urlpatterns = [
     # dj-rest-auth
     path("auth/account-confirm-email/<str:key>/", ConfirmEmailView.as_view()),
-    path(
-        "auth/registration",
-        RateLimitedRegisterView.as_view(),
-        name="rest_register",
-    ),
+    path("auth/registration", RateLimitedRegisterView.as_view(), name="rest_register"),
     path("auth/login", RateLimitedLoginView.as_view(), name="rest_login"),
     path("auth/logout", RateLimitedLogoutView.as_view(), name="rest_logout"),
     path("auth/user", UserDetailsView.as_view(), name="rest_user_details"),
@@ -117,171 +113,41 @@ urlpatterns = [
     # user profile
     path("profile", Profile.as_view(), name="user_profile"),
     # admin security endpoints
-    path(
-        "admin/security/stats",
-        AdminSecurityStatsView.as_view(),
-        name="admin_security_stats",
-    ),
-    path(
-        "admin/security/blocked-ips",
-        AdminBlockedIPsView.as_view(),
-        name="admin_blocked_ips",
-    ),
-    path(
-        "admin/security/unblock-ip/<str:ip_address>",
-        AdminUnblockIPView.as_view(),
-        name="admin_unblock_ip",
-    ),
-    path(
-        "admin/security/audit-logs",
-        AdminSecurityAuditView.as_view(),
-        name="admin_security_audit",
-    ),
-    path(
-        "admin/security/cleanup",
-        AdminCleanupSecurityDataView.as_view(),
-        name="admin_security_cleanup",
-    ),
+    path("admin/security/stats", AdminSecurityStatsView.as_view(), name="admin_security_stats"),
+    path("admin/security/blocked-ips", AdminBlockedIPsView.as_view(), name="admin_blocked_ips"),
+    path("admin/security/unblock-ip/<str:ip_address>", AdminUnblockIPView.as_view(), name="admin_unblock_ip"),
+    path("admin/security/audit-logs", AdminSecurityAuditView.as_view(), name="admin_security_audit"),
+    path("admin/security/cleanup", AdminCleanupSecurityDataView.as_view(), name="admin_security_cleanup"),
     # agent endpoints
-    path(
-        "agent/license",
-        AgentLicenseViewSet.as_view(
-            {"get": "get_license", "put": "update_license"}
-        ),
-        name="agent_license",
-    ),
-    path(
-        "agent/license/upload",
-        AgentLicenseViewSet.as_view({"post": "upload_document"}),
-        name="agent_upload_document",
-    ),
-    path(
-        "agent/license/status",
-        AgentLicenseViewSet.as_view({"get": "get_license_status"}),
-        name="agent_license_status",
-    ),
-    path(
-        "agent/agency",
-        AgentAgencyViewSet.as_view(
-            {"get": "get_agency_info", "put": "update_agency_info"}
-        ),
-        name="agent_agency",
-    ),
+    path("agent/license", AgentLicenseViewSet.as_view({'get': 'get_license', 'put': 'update_license'}), name="agent_license"),
+    path("agent/license/upload", AgentLicenseViewSet.as_view({'post': 'upload_document'}), name="agent_upload_document"),
+    path("agent/license/status", AgentLicenseViewSet.as_view({'get': 'get_license_status'}), name="agent_license_status"),
+    path("agent/agency", AgentAgencyViewSet.as_view({'get': 'get_agency_info', 'put': 'update_agency_info'}), name="agent_agency"),
     path("agent/stats", AgentStatsView.as_view(), name="agent_stats"),
     # owner endpoints
-    path(
-        "owner/property",
-        OwnerPropertyViewSet.as_view(
-            {"get": "get_property_info", "put": "update_property_info"}
-        ),
-        name="owner_property",
-    ),
-    path(
-        "owner/property/upload",
-        OwnerPropertyViewSet.as_view({"post": "upload_document"}),
-        name="owner_upload_document",
-    ),
-    path(
-        "owner/verification",
-        OwnerVerificationViewSet.as_view({"get": "get_verification_status"}),
-        name="owner_verification",
-    ),
-    path(
-        "owner/verification/requirements",
-        OwnerVerificationViewSet.as_view(
-            {"get": "get_verification_requirements"}
-        ),
-        name="owner_verification_requirements",
-    ),
-    path(
-        "owner/analytics", OwnerAnalyticsView.as_view(), name="owner_analytics"
-    ),
+    path("owner/property", OwnerPropertyViewSet.as_view({'get': 'get_property_info', 'put': 'update_property_info'}), name="owner_property"),
+    path("owner/property/upload", OwnerPropertyViewSet.as_view({'post': 'upload_document'}), name="owner_upload_document"),
+    path("owner/verification", OwnerVerificationViewSet.as_view({'get': 'get_verification_status'}), name="owner_verification"),
+    path("owner/verification/requirements", OwnerVerificationViewSet.as_view({'get': 'get_verification_requirements'}), name="owner_verification_requirements"),
+    path("owner/analytics", OwnerAnalyticsView.as_view(), name="owner_analytics"),
     # tenant endpoints
-    path(
-        "tenant/preferences",
-        TenantPreferenceViewSet.as_view(
-            {"get": "get_preferences", "put": "update_preferences"}
-        ),
-        name="tenant_preferences",
-    ),
-    path(
-        "tenant/preferences/suggestions",
-        TenantPreferenceViewSet.as_view({"get": "get_preference_suggestions"}),
-        name="tenant_preference_suggestions",
-    ),
-    path(
-        "tenant/history",
-        TenantHistoryViewSet.as_view({"get": "get_history"}),
-        name="tenant_history",
-    ),
-    path(
-        "tenant/history/add",
-        TenantHistoryViewSet.as_view({"post": "add_history_entry"}),
-        name="tenant_add_history",
-    ),
-    path(
-        "tenant/history/stats",
-        TenantHistoryViewSet.as_view({"get": "get_history_stats"}),
-        name="tenant_history_stats",
-    ),
-    path(
-        "tenant/ratings",
-        TenantRatingViewSet.as_view({"get": "get_ratings"}),
-        name="tenant_ratings",
-    ),
-    path(
-        "tenant/ratings/add",
-        TenantRatingViewSet.as_view({"post": "add_rating"}),
-        name="tenant_add_rating",
-    ),
-    path(
-        "tenant/ratings/breakdown",
-        TenantRatingViewSet.as_view({"get": "get_rating_breakdown"}),
-        name="tenant_rating_breakdown",
-    ),
+    path("tenant/preferences", TenantPreferenceViewSet.as_view({'get': 'get_preferences', 'put': 'update_preferences'}), name="tenant_preferences"),
+    path("tenant/preferences/suggestions", TenantPreferenceViewSet.as_view({'get': 'get_preference_suggestions'}), name="tenant_preference_suggestions"),
+    path("tenant/history", TenantHistoryViewSet.as_view({'get': 'get_history'}), name="tenant_history"),
+    path("tenant/history/add", TenantHistoryViewSet.as_view({'post': 'add_history_entry'}), name="tenant_add_history"),
+    path("tenant/history/stats", TenantHistoryViewSet.as_view({'get': 'get_history_stats'}), name="tenant_history_stats"),
+    path("tenant/ratings", TenantRatingViewSet.as_view({'get': 'get_ratings'}), name="tenant_ratings"),
+    path("tenant/ratings/add", TenantRatingViewSet.as_view({'post': 'add_rating'}), name="tenant_add_rating"),
+    path("tenant/ratings/breakdown", TenantRatingViewSet.as_view({'get': 'get_rating_breakdown'}), name="tenant_rating_breakdown"),
     # manager endpoints
-    path(
-        "manager/assignments",
-        ManagerAssignmentViewSet.as_view(
-            {"get": "get_assignments", "put": "update_assignments"}
-        ),
-        name="manager_assignments",
-    ),
-    path(
-        "manager/assignments/add",
-        ManagerAssignmentViewSet.as_view({"post": "add_assignment"}),
-        name="manager_add_assignment",
-    ),
-    path(
-        "manager/assignments/stats",
-        ManagerAssignmentViewSet.as_view({"get": "get_assignment_stats"}),
-        name="manager_assignment_stats",
-    ),
-    path(
-        "manager/maintenance",
-        ManagerMaintenanceViewSet.as_view({"get": "get_maintenance_requests"}),
-        name="manager_maintenance",
-    ),
-    path(
-        "manager/maintenance/add",
-        ManagerMaintenanceViewSet.as_view({"post": "add_maintenance_request"}),
-        name="manager_add_maintenance",
-    ),
-    path(
-        "manager/maintenance/<str:request_id>/status",
-        ManagerMaintenanceViewSet.as_view({"put": "update_request_status"}),
-        name="manager_update_request_status",
-    ),
-    path(
-        "manager/maintenance/stats",
-        ManagerMaintenanceViewSet.as_view({"get": "get_maintenance_stats"}),
-        name="manager_maintenance_stats",
-    ),
-    path(
-        "manager/dashboard",
-        ManagerDashboardView.as_view(),
-        name="manager_dashboard",
-    ),
+    path("manager/assignments", ManagerAssignmentViewSet.as_view({'get': 'get_assignments', 'put': 'update_assignments'}), name="manager_assignments"),
+    path("manager/assignments/add", ManagerAssignmentViewSet.as_view({'post': 'add_assignment'}), name="manager_add_assignment"),
+    path("manager/assignments/stats", ManagerAssignmentViewSet.as_view({'get': 'get_assignment_stats'}), name="manager_assignment_stats"),
+    path("manager/maintenance", ManagerMaintenanceViewSet.as_view({'get': 'get_maintenance_requests'}), name="manager_maintenance"),
+    path("manager/maintenance/add", ManagerMaintenanceViewSet.as_view({'post': 'add_maintenance_request'}), name="manager_add_maintenance"),
+    path("manager/maintenance/<str:request_id>/status", ManagerMaintenanceViewSet.as_view({'put': 'update_request_status'}), name="manager_update_request_status"),
+    path("manager/maintenance/stats", ManagerMaintenanceViewSet.as_view({'get': 'get_maintenance_stats'}), name="manager_maintenance_stats"),
+    path("manager/dashboard", ManagerDashboardView.as_view(), name="manager_dashboard"),
     # include router urls
     path("", include(router.urls)),
 ]
