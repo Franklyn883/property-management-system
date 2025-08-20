@@ -49,6 +49,12 @@ from .views.manager_views import (
     ManagerMaintenanceViewSet,
     ManagerDashboardView,
 )
+from .views.health_views import (
+    HealthCheckView,
+    DetailedHealthCheckView,
+    ReadinessCheckView,
+    LivenessCheckView,
+)
 from rest_framework.routers import DefaultRouter
 
 # create router for ViewSets
@@ -148,6 +154,13 @@ urlpatterns = [
     path("manager/maintenance/<str:request_id>/status", ManagerMaintenanceViewSet.as_view({'put': 'update_request_status'}), name="manager_update_request_status"),
     path("manager/maintenance/stats", ManagerMaintenanceViewSet.as_view({'get': 'get_maintenance_stats'}), name="manager_maintenance_stats"),
     path("manager/dashboard", ManagerDashboardView.as_view(), name="manager_dashboard"),
+    
+    # Health check endpoints
+    path("health/", HealthCheckView.as_view(), name="health_check"),
+    path("health/detailed/", DetailedHealthCheckView.as_view(), name="detailed_health_check"),
+    path("health/ready/", ReadinessCheckView.as_view(), name="readiness_check"),
+    path("health/live/", LivenessCheckView.as_view(), name="liveness_check"),
+    
     # include router urls
     path("", include(router.urls)),
 ]

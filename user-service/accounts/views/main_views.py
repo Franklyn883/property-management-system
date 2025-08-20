@@ -10,6 +10,8 @@ from django.db import transaction
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.viewsets import ViewSet
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiResponse
+from drf_spectacular.types import OpenApiTypes
 from ..utilities.user_utility import get_serializer_for_user, get_profile_for_user
 from ..models import UserProfile
 from ..serializers.main_serializers import (
@@ -219,9 +221,60 @@ class Profile(APIView):
             return None
 
 
+@extend_schema_view(
+    submit=extend_schema(
+        summary="Submit Verification Documents",
+        description="""
+        Submit verification documents for property poster verification.
+        
+        Only Owners and Agents can submit verification documents.
+        Each user can only be verified once.
+        
+        **Required Role:** Owner or Agent
+        **Rate Limited:** Yes (verification_rate_limit applied)
+        """,
+        tags=["Verification"],
+        responses={
+            201: OpenApiResponse(description="Verification submitted successfully"),
+            400: OpenApiResponse(description="Bad request - user already verified or invalid data"),
+            403: OpenApiResponse(description="Forbidden - insufficient permissions"),
+            429: OpenApiResponse(description="Rate limit exceeded"),
+        }
+    ),
+    status=extend_schema(
+        summary="Check Verification Status",
+        description="""
+        Check the current verification status of the authenticated user.
+        
+        Returns detailed information about the user's verification state,
+        including submission status and approval state.
+        
+        **Required Role:** Owner or Agent
+        """,
+        tags=["Verification"],
+        responses={
+            200: VerificationStatusSerializer,
+            403: OpenApiResponse(description="Forbidden - insufficient permissions"),
+            404: OpenApiResponse(description="Profile not found"),
+        }
+    )
+)
 class VerificationViewSet(ViewSet):
     """
-    Viewset for poster verification management.
+    Property Poster Verification Management
+    
+    This ViewSet handles the verification process for property posters (Owners and Agents).
+    Users must submit verification documents to be approved as verified posters.
+    
+    **Key Features:**
+    - Document submission for verification
+    - Verification status checking
+    - Rate limiting for security
+    - Role-based access control
+    
+    **Permissions:**
+    - Only Owners and Agents can access these endpoints
+    - Users must be authenticated
     """
 
     permission_classes = [IsAuthenticated]
@@ -340,9 +393,103 @@ class VerificationViewSet(ViewSet):
         )
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="List Verification Requests",
+        description="""
+        Retrieve a paginated list of all verification requests for admin review.
+        
+        Supports filtering by status, role, and search queries.
+        Only returns profiles that have submitted verification documents.
+        
+        **Required Role:** Admin
+        **Rate Limited:** Yes (admin_rate_limit applied)
+        """,
+        tags=["Admin", "Verification"],
+        parameters=[
+            OpenApiParameter(
+                name="status",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description="Filter by verification status (pending, approved, rejected)",
+                enum=["pending", "approved", "rejected"]
+            ),
+            OpenApiParameter(
+                name="role",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description="Filter by user role",
+                enum=["owner", "agent"]
+            ),
+            OpenApiParameter(
+                name="search",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description="Search by email or name"
+            ),
+        ],
+        responses={
+            200: AdminVerificationSerializer(many=True),
+            403: OpenApiResponse(description="Forbidden - admin access required"),
+            429: OpenApiResponse(description="Rate limit exceeded"),
+        }
+    ),
+    approve=extend_schema(
+        summary="Approve Verification Request",
+        description="""
+        Approve a verification request for a specific user.
+        
+        Sets the user's is_verified_poster status to True and logs the approval.
+        
+        **Required Role:** Admin
+        **Rate Limited:** Yes (admin_rate_limit applied)
+        """,
+        tags=["Admin", "Verification"],
+        responses={
+            200: OpenApiResponse(description="Verification approved successfully"),
+            400: OpenApiResponse(description="Bad request - user already verified"),
+            403: OpenApiResponse(description="Forbidden - admin access required"),
+            404: OpenApiResponse(description="User not found"),
+            429: OpenApiResponse(description="Rate limit exceeded"),
+        }
+    ),
+    reject=extend_schema(
+        summary="Reject Verification Request",
+        description="""
+        Reject a verification request for a specific user.
+        
+        Sets the user's verification status and logs the rejection with reason.
+        
+        **Required Role:** Admin
+        **Rate Limited:** Yes (admin_rate_limit applied)
+        """,
+        tags=["Admin", "Verification"],
+        responses={
+            200: OpenApiResponse(description="Verification rejected successfully"),
+            400: OpenApiResponse(description="Bad request - invalid data"),
+            403: OpenApiResponse(description="Forbidden - admin access required"),
+            404: OpenApiResponse(description="User not found"),
+            429: OpenApiResponse(description="Rate limit exceeded"),
+        }
+    )
+)
 class AdminVerificationViewSet(ListModelMixin, ViewSet):
     """
-    Viewset for admin verification management.
+    Admin Verification Management
+    
+    This ViewSet provides comprehensive verification management capabilities for administrators.
+    Admins can review, approve, or reject verification requests from property posters.
+    
+    **Key Features:**
+    - List all verification requests with filtering
+    - Approve verification requests
+    - Reject verification requests with reasons
+    - Search and filter capabilities
+    - Audit logging for all actions
+    
+    **Permissions:**
+    - Admin role required for all endpoints
+    - Rate limiting applied for security
     """
 
     permission_classes = [IsAuthenticated, IsAdmin]

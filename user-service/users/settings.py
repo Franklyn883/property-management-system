@@ -58,6 +58,8 @@ INSTALLED_APPS = [
     "phonenumber_field",
     "corsheaders",
     "security",
+    "drf_spectacular",
+    "django_extensions",
     # Local apps
     "accounts.apps.AccountsConfig",
 ]
@@ -162,6 +164,9 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication'
     ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 20,
 }
 
 # Simple JWT settings
@@ -178,6 +183,83 @@ JWT_AUTH_REFRESH_COOKIE = 'my-app-refresh-auth'
 REST_USE_JWT = True
 
 INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY")
+
+# DRF Spectacular settings
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Property Management System - User Service API",
+    "DESCRIPTION": """
+    A comprehensive User Service API for the Property Management System.
+    
+    This API provides complete user management functionality including:
+    - User authentication and authorization (JWT-based)
+    - Role-based access control (Admin, Owner, Agent, Tenant, Manager)
+    - User profile management with role-specific features
+    - Account verification and security features
+    - Admin user management and control
+    
+    ## Authentication
+    All endpoints require JWT authentication unless otherwise specified.
+    Use the `/auth/login/` endpoint to obtain access tokens.
+    
+    ## Roles
+    - **Admin**: Full system access and user management
+    - **Owner**: Property ownership management
+    - **Agent**: License and agency management
+    - **Tenant**: Rental preferences and history
+    - **Manager**: Property assignment and maintenance
+    """,
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "COMPONENT_NO_READ_ONLY_REQUIRED": True,
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "persistAuthorization": True,
+        "displayOperationId": True,
+        "filter": True,
+    },
+    "REDOC_UI_SETTINGS": {
+        "hideDownloadButton": False,
+        "hideHostname": False,
+        "hideLoading": False,
+        "nativeScrollbars": False,
+        "pathInMiddlePanel": True,
+        "theme": {
+            "colors": {
+                "primary": {
+                    "main": "#3f51b5"
+                }
+            },
+            "typography": {
+                "fontSize": "14px",
+                "lineHeight": "1.5em",
+                "code": {
+                    "fontSize": "13px"
+                }
+            }
+        }
+    },
+    "SCHEMA_PATH_PREFIX": "/api/v1/",
+    "DEFAULT_GENERATOR_CLASS": "drf_spectacular.generators.SchemaGenerator",
+    "POSTPROCESSING_HOOKS": [
+        "drf_spectacular.hooks.postprocess_schema_enums"
+    ],
+    "ENUM_NAME_OVERRIDES": {
+        "ValidationErrorEnum": "drf_spectacular.types.ErrorDetail",
+    },
+    "TAGS": [
+        {"name": "Authentication", "description": "User authentication endpoints"},
+        {"name": "Profile", "description": "User profile management"},
+        {"name": "Admin", "description": "Admin user management"},
+        {"name": "Verification", "description": "User verification system"},
+        {"name": "Agent", "description": "Agent-specific features"},
+        {"name": "Owner", "description": "Property owner features"},
+        {"name": "Tenant", "description": "Tenant-specific features"},
+        {"name": "Manager", "description": "Property manager features"},
+        {"name": "Security", "description": "Security and monitoring"},
+    ],
+}
 
 
 # allauth settings

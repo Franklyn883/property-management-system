@@ -11,4 +11,8 @@ django-phonenumber-field==7.3.0         # Phone number validation
 phonenumbers==8.13.25                   # Phone number parsing and validation
 email-validator==2.1.0                  # Email validation
 django-cors-headers==4.3.1              # CORS headers for cross-origin requests
-django-security==0.16.0                 # Security headers and middleware
+# django-security==1.1.1                  # Security headers and middleware (incompatible with Django 5.2)
+drf-spectacular==0.27.0                  # OpenAPI 3.0 schema generation for DRF
+coverage==7.3.2                         # Code coverage measurement
+django-extensions==3.2.3                # Additional Django management commands
+factory-boy==3.3.0                      # Test fixtures and model factories
