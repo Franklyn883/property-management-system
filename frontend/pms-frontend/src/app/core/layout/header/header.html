@@ -1,1 +1,16 @@
-<p>header works!</p>
+<header class=" header d-flex flex-row justify-between items-center px-6 py-5">
+  <div class="font-bold text-2xl logo" >logo</div>
+  <ul class="nav d-flex flex-row gap-4 ">
+    <li><a routerLink="/dashboard" routerLinkActive="active">Dashboard</a></li>
+    <li><a routerLink="/properties">Properties</a></li>
+    <li><a routerLink="/payment">Payment</a></li>
+    <li><a routerLink="/lease">Leases</a></li>
+    <li><a routerLink="/service">Services</a></li>
+    <li><a routerLink="/analytics">Analytics</a></li>
+    <li><a routerLink="/settings">Notifications</a></li>
+  </ul>
+  <div class="auth d-flex flex-row gap-4 ">
+    <p class="btn text-base">Login</p>
+    <button class="btn btn-primary text-base">Register</button>
+  </div>
+</header>

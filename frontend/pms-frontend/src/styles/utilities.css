@@ -216,7 +216,10 @@
   padding-left: var(--spacing-xl);
   padding-right: var(--spacing-xl);
 }
-
+.px-6{
+  padding-left: 5rem;
+  padding-right: 5rem;
+}
 .py-1 {
   padding-top: var(--spacing-xs);
   padding-bottom: var(--spacing-xs);

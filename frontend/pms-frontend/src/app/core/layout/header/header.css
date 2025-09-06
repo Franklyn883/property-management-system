@@ -1,0 +1,23 @@
+.logo{
+    color : var(--color-primary);
+}
+.nav li a 
+{
+    color: var(--color-gray-700);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    padding: var(--spacing-xs) var(--spacing-xs);
+    transition: border-bottom 0.2s;
+    border-bottom: 2px solid transparent;
+    text-decoration: none;
+    }
+.nav li a:hover,
+.auth p:hover{
+    color: var(--color-primary);
+    cursor: pointer;
+}
+
+.nav li a.active {
+    color: var(--color-primary);
+    border-bottom: 2px solid var(--color-primary);
+}

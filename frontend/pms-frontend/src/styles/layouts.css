@@ -42,55 +42,6 @@
   grid-template-columns: repeat(12, 1fr);
 }
 
-/* Flexbox Utilities */
-.flex {
-  display: flex;
-}
-.inline-flex {
-  display: inline-flex;
-}
-.flex-row {
-  flex-direction: row;
-}
-.flex-col {
-  flex-direction: column;
-}
-.flex-wrap {
-  flex-wrap: wrap;
-}
-.flex-nowrap {
-  flex-wrap: nowrap;
-}
-
-.items-start {
-  align-items: flex-start;
-}
-.items-center {
-  align-items: center;
-}
-.items-end {
-  align-items: flex-end;
-}
-.items-stretch {
-  align-items: stretch;
-}
-
-.justify-start {
-  justify-content: flex-start;
-}
-.justify-center {
-  justify-content: center;
-}
-.justify-end {
-  justify-content: flex-end;
-}
-.justify-between {
-  justify-content: space-between;
-}
-.justify-around {
-  justify-content: space-around;
-}
-
 /* Main Layout Components */
 .header {
   height: var(--header-height);
@@ -140,51 +91,6 @@
   border: var(--border-width-thin) solid var(--color-gray-200);
   border-radius: var(--border-radius-md);
   padding: var(--spacing-md);
-}
-
-/* Spacing Utilities */
-.gap-xs {
-  gap: var(--spacing-xs);
-}
-.gap-sm {
-  gap: var(--spacing-sm);
-}
-.gap-md {
-  gap: var(--spacing-md);
-}
-.gap-lg {
-  gap: var(--spacing-lg);
-}
-.gap-xl {
-  gap: var(--spacing-xl);
-}
-
-/* Position Utilities */
-.relative {
-  position: relative;
-}
-.absolute {
-  position: absolute;
-}
-.fixed {
-  position: fixed;
-}
-.sticky {
-  position: sticky;
-}
-
-/* Display Utilities */
-.block {
-  display: block;
-}
-.inline-block {
-  display: inline-block;
-}
-.inline {
-  display: inline;
-}
-.hidden {
-  display: none;
 }
 
 /* Responsive Layout */
