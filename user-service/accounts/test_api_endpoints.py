@@ -13,7 +13,7 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from unittest.mock import patch
 import uuid
-from ..models import UserProfile
+from accounts.models import UserProfile
 
 User = get_user_model()
 
@@ -61,12 +61,12 @@ class BaseAPITestCase(TestCase):
             is_verified=True
         )
         
-        # Create user profiles
-        self.admin_profile = UserProfile.objects.create(user=self.admin_user)
-        self.owner_profile = UserProfile.objects.create(user=self.owner_user)
-        self.agent_profile = UserProfile.objects.create(user=self.agent_user)
-        self.tenant_profile = UserProfile.objects.create(user=self.tenant_user)
-        self.manager_profile = UserProfile.objects.create(user=self.manager_user)
+        # Get or create user profiles (handles auto-creation via signals)
+        self.admin_profile, _ = UserProfile.objects.get_or_create(user=self.admin_user)
+        self.owner_profile, _ = UserProfile.objects.get_or_create(user=self.owner_user)
+        self.agent_profile, _ = UserProfile.objects.get_or_create(user=self.agent_user)
+        self.tenant_profile, _ = UserProfile.objects.get_or_create(user=self.tenant_user)
+        self.manager_profile, _ = UserProfile.objects.get_or_create(user=self.manager_user)
     
     def get_jwt_token(self, user):
         """Get JWT token for a user."""
@@ -90,7 +90,7 @@ class ProfileAPITests(BaseAPITestCase):
         """Test getting profile for authenticated user."""
         self.authenticate_user(self.owner_user)
         
-        url = reverse('profile')
+        url = reverse('user_profile')
         response = self.client.get(url)
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -99,7 +99,7 @@ class ProfileAPITests(BaseAPITestCase):
     
     def test_get_profile_unauthenticated(self):
         """Test getting profile without authentication."""
-        url = reverse('profile')
+        url = reverse('user_profile')
         response = self.client.get(url)
         
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -108,7 +108,7 @@ class ProfileAPITests(BaseAPITestCase):
         """Test updating profile for authenticated user."""
         self.authenticate_user(self.owner_user)
         
-        url = reverse('profile')
+        url = reverse('user_profile')
         data = {
             'first_name': 'Updated',
             'last_name': 'Name',
@@ -395,7 +395,7 @@ class RateLimitingTests(BaseAPITestCase):
         
         self.authenticate_user(self.owner_user)
         
-        url = reverse('profile')
+        url = reverse('user_profile')
         
         # Make multiple requests rapidly
         for _ in range(5):
@@ -426,7 +426,7 @@ class SecurityTests(BaseAPITestCase):
     
     def test_internal_api_requires_key(self):
         """Test that internal API endpoints require API key."""
-        url = reverse('internal-user-detail', kwargs={'user_id': self.owner_user.id})
+        url = reverse('internal_user_detail', kwargs={'user_id': self.owner_user.id})
         
         # Request without API key should fail
         response = self.client.get(url)
@@ -441,7 +441,7 @@ class SecurityTests(BaseAPITestCase):
         """Test that CORS headers are present in responses."""
         self.authenticate_user(self.owner_user)
         
-        url = reverse('profile')
+        url = reverse('user_profile')
         response = self.client.get(url)
         
         # Check for CORS headers (these would be added by middleware)

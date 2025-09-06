@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     "dj_rest_auth.registration",
     "phonenumber_field",
     "corsheaders",
-    "security",
+    # "security",  # Commented out - incompatible with Django 5.2
     "drf_spectacular",
     "django_extensions",
     # Local apps
@@ -289,7 +289,7 @@ REST_AUTH = {
     'USE_JWT': True,
     'JWT_AUTH_COOKIE': 'my-app-auth',
     'JWT_AUTH_REFRESH_COOKIE': 'my-app-refresh-auth',
-    'USER_DETAILS_SERIALIZER': 'accounts.serializers.CustomUserSerializer',
+    'USER_DETAILS_SERIALIZER': 'accounts.serializers.main_serializers.CustomUserSerializer',
 }
 
 LOGIN_URL = 'http://localhost:8000/api/v1/auth/login'# Email settings

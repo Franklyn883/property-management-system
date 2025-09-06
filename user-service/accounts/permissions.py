@@ -28,6 +28,15 @@ class IsAgent(permissions.BasePermission):
         return request.user.role == "agent"
 
 
+class IsTenant(permissions.BasePermission):
+    """
+    Allows access only to users with the role 'tenant'.
+    """
+
+    def has_permission(self, request, view):
+        return request.user.role == "tenant"
+
+
 class IsManager(permissions.BasePermission):
     """
     Allows access only to users with the role 'manager'.
