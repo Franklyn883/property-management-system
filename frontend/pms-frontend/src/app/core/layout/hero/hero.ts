@@ -1,11 +1,10 @@
 import { Component } from '@angular/core';
+import { QuickSearch } from '../../components/quick-search/quick-search';
 
 @Component({
   selector: 'app-hero',
-  imports: [],
+  imports: [QuickSearch],
   templateUrl: './hero.html',
-  styleUrl: './hero.css'
+  styleUrl: './hero.css',
 })
-export class Hero {
-
-}
+export class Hero {}

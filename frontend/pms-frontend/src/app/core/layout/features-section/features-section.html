@@ -1,0 +1,14 @@
+<section class="features-section">
+  <div class="container mx-auto text-center">
+    <h2 class="section-title">Featured Properties</h2>
+    <p class="section-description">Discover our handpicked selection of premium properties</p>
+
+    <div class="properties-grid">
+      <app-property-card *ngFor="let property of featuredProperties" [property]="property">
+      </app-property-card>
+    </div>
+    <div class="cta">
+      <button class="btn btn-lg btn-primary btn-cta text-xl my-16">View All Properties</button>
+    </div>
+  </div>
+</section>
