@@ -176,6 +176,17 @@
   margin-bottom: var(--spacing-xl);
 }
 
+/* Additional margin utilities */
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+.mb-8 {
+  margin-bottom: 2rem;
+}
+.mb-12 {
+  margin-bottom: 3rem;
+}
+
 /* Padding */
 .p-0 {
   padding: 0;
@@ -194,6 +205,14 @@
 }
 .p-5 {
   padding: var(--spacing-xl);
+}
+
+/* Additional padding utilities */
+.p-6 {
+  padding: 1.5rem;
+}
+.p-8 {
+  padding: 2rem;
 }
 
 .px-1 {
@@ -240,6 +259,9 @@
   padding-top: var(--spacing-xl);
   padding-bottom: var(--spacing-xl);
 }
+
+
+
 
 /* Width and Height */
 .w-full {
@@ -379,7 +401,13 @@
 .text-4xl {
   font-size: var(--font-size-4xl);
 }
-
+/* Additional text sizes for hero */
+.text-5xl {
+  font-size: 3rem; /* 48px */
+}
+.text-6xl {
+  font-size: 3.75rem; /* 60px */
+}
 /* Text colors */
 .text-primary {
   color: var(--color-primary);
@@ -594,5 +622,65 @@
   }
   .lg\:flex {
     display: flex;
+  }
+}
+
+
+
+
+
+
+
+
+
+/* Focus utilities */
+.focus\:ring-2:focus {
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
+}
+
+.focus\:ring-primary-blue:focus {
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
+}
+
+.focus\:border-transparent:focus {
+  border-color: transparent;
+}
+
+/* Additional border colors */
+.border-gray-200 {
+  border-color: var(--color-gray-200);
+}
+
+/* Additional responsive utilities */
+@media (max-width: 640px) {
+  .sm\:text-2xl {
+    font-size: var(--font-size-2xl);
+  }
+  .sm\:text-3xl {
+    font-size: var(--font-size-3xl);
+  }
+  .sm\:p-4 {
+    padding: var(--spacing-lg);
+  }
+}
+
+@media (max-width: 768px) {
+  .md\:text-3xl {
+    font-size: var(--font-size-3xl);
+  }
+  .md\:text-4xl {
+    font-size: var(--font-size-4xl);
+  }
+  .md\:p-6 {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .lg\:text-4xl {
+    font-size: var(--font-size-4xl);
+  }
+  .lg\:p-8 {
+    padding: 2rem;
   }
 }

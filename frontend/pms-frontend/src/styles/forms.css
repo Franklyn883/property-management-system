@@ -223,3 +223,75 @@ textarea.form-control {
   padding-right: calc(var(--spacing-md) * 0.5);
   padding-left: calc(var(--spacing-md) * 0.5);
 }
+
+/* Enhanced Search Form Styles */
+.search-form {
+  width: 100%;
+}
+
+.search-form .form-control {
+  padding: 1rem;
+  font-size: var(--font-size-base);
+  border: 2px solid var(--color-gray-200);
+  border-radius: var(--border-radius-md);
+  transition: all var(--transition-normal) var(--transition-timing);
+  box-shadow: var(--shadow-sm);
+}
+
+.search-form .form-control:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.search-form .form-control:hover {
+  border-color: var(--color-gray-400);
+  box-shadow: var(--shadow-md);
+}
+
+/* Enhanced Select for Search */
+.search-form select.form-control {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 1rem center;
+  background-size: 1rem;
+  padding-right: 3rem;
+  cursor: pointer;
+}
+
+.search-form select.form-control:focus {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23007bff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+}
+
+/* Form Grid for Search */
+.search-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
+  align-items: end;
+}
+
+/* Search Button Specific Styles */
+.search-button-group {
+  display: flex;
+  align-items: flex-end;
+}
+
+.search-button-group .btn {
+  width: 100%;
+  padding: 1rem 2rem;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Responsive Search Form */
+@media (max-width: 768px) {
+  .search-fields {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  .search-form .form-control,
+  .search-button-group .btn {
+    padding: 0.875rem 1rem;
+  }
+}
